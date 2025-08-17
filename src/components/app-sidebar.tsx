@@ -1,7 +1,7 @@
 import ModeToggle from './mode-toggle'
 import { ProfileDialog } from './profile-dialog'
 import { Link, LinkProps } from '@tanstack/react-router'
-import { LayoutDashboard, LucideIcon, NotebookPen } from 'lucide-react'
+import { BookImage, LayoutDashboard, LucideIcon, NotebookPen } from 'lucide-react'
 import { useEffect } from 'react'
 import {
   Sidebar,
@@ -22,7 +22,7 @@ interface SidebarNavItem extends LinkProps {
 
 const sidebarNavItems: SidebarNavItem[] = [
   { name: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' },
-  // { name: 'Notebooks', icon: NotebookPen, to: '/notebooks' },
+  { name: 'Media Library', icon: BookImage, to: '/media' },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -36,45 +36,38 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar
-      collapsible="icon"
-      className="overflow-hidden [&>[data-sidebar=sidebar]]:flex-row"
+      collapsible="none"
     >
-      <Sidebar
-        collapsible="none"
-        className="!w-[calc(var(--sidebar-width-icon)_+_1px)] border-r"
-      >
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupContent className="px-1.5 md:px-0">
-              <SidebarMenu>
-                {sidebarNavItems.map((item) => (
-                  <SidebarMenuItem key={item.name}>
-                    <Link to={item.to}>
-                      {({ isActive }) => (
-                        <SidebarMenuButton
-                          tooltip={{ children: item.name, hidden: false }}
-                          isActive={isActive}
-                          className="px-2.5 md:px-2"
-                        >
-                          <item.icon />
-                          {item.name}
-                        </SidebarMenuButton>
-                      )}
-                    </Link>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-        <SidebarFooter>
-          <SidebarMenu>
-            <ModeToggle />
-            <ProfileDialog />
-          </SidebarMenu>
-        </SidebarFooter>
-      </Sidebar>
-      {props.children}
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent className="px-1.5 md:px-0">
+            <SidebarMenu>
+              {sidebarNavItems.map((item) => (
+                <SidebarMenuItem key={item.name}>
+                  <Link to={item.to}>
+                    {({ isActive }) => (
+                      <SidebarMenuButton
+                        tooltip={{ children: item.name, hidden: false }}
+                        isActive={isActive}
+                        className="px-2.5 md:px-2"
+                      >
+                        <item.icon />
+                        {item.name}
+                      </SidebarMenuButton>
+                    )}
+                  </Link>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <ModeToggle />
+          <ProfileDialog />
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   )
 }

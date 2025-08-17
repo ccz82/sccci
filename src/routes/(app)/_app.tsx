@@ -33,34 +33,13 @@ export const Route = createFileRoute('/(app)/_app')({
 
 function LayoutComponent() {
   return (
-    <SidebarProvider
-      style={
-        {
-          '--sidebar-width': '330px',
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar>
-      <Sidebar collapsible="none" className="hidden flex-1 md:flex">
-        <SidebarHeader className="gap-3.5 border-b p-4">
-          <div className="flex w-full items-center justify-between">
-            <div className="text-foreground text-base font-medium">Hello</div>
-            <Label className="flex items-center gap-2 text-sm">
-              <span>Unreads</span>
-            </Label>
-          </div>
-          <SidebarInput placeholder="Type to search..." />
-        </SidebarHeader>
-        <SidebarContent></SidebarContent>
-        <SidebarRail />
-      </Sidebar>
-        <header className="bg-background sticky top-0 flex shrink-0 items-center gap-2 border-b p-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-        </header>
-        <Outlet />
-
-      </AppSidebar>
-    </SidebarProvider>
+    <div className="flex w-full h-full">
+      <SidebarProvider>
+        <AppSidebar />
+        <main>
+          <Outlet />
+        </main>
+      </SidebarProvider>
+    </div>
   )
 }
