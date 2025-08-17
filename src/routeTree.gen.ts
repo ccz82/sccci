@@ -19,6 +19,7 @@ import { Route as appAppImport } from './routes/(app)/_app'
 import { Route as publicPublicIndexImport } from './routes/(public)/_public.index'
 import { Route as authAuthSignupImport } from './routes/(auth)/_auth.signup'
 import { Route as authAuthSigninImport } from './routes/(auth)/_auth.signin'
+import { Route as appAppPeopleImport } from './routes/(app)/_app.people'
 import { Route as appAppMediaImport } from './routes/(app)/_app.media'
 import { Route as appAppDashboardImport } from './routes/(app)/_app.dashboard'
 import { Route as authAuthVerifyAccountIndexImport } from './routes/(auth)/_auth.verify-account.index'
@@ -80,6 +81,12 @@ const authAuthSigninRoute = authAuthSigninImport.update({
   id: '/signin',
   path: '/signin',
   getParentRoute: () => authAuthRoute,
+} as any)
+
+const appAppPeopleRoute = appAppPeopleImport.update({
+  id: '/people',
+  path: '/people',
+  getParentRoute: () => appAppRoute,
 } as any)
 
 const appAppMediaRoute = appAppMediaImport.update({
@@ -184,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAppMediaImport
       parentRoute: typeof appAppImport
     }
+    '/(app)/_app/people': {
+      id: '/(app)/_app/people'
+      path: '/people'
+      fullPath: '/people'
+      preLoaderRoute: typeof appAppPeopleImport
+      parentRoute: typeof appAppImport
+    }
     '/(auth)/_auth/signin': {
       id: '/(auth)/_auth/signin'
       path: '/signin'
@@ -241,11 +255,13 @@ declare module '@tanstack/react-router' {
 interface appAppRouteChildren {
   appAppDashboardRoute: typeof appAppDashboardRoute
   appAppMediaRoute: typeof appAppMediaRoute
+  appAppPeopleRoute: typeof appAppPeopleRoute
 }
 
 const appAppRouteChildren: appAppRouteChildren = {
   appAppDashboardRoute: appAppDashboardRoute,
   appAppMediaRoute: appAppMediaRoute,
+  appAppPeopleRoute: appAppPeopleRoute,
 }
 
 const appAppRouteWithChildren =
@@ -320,6 +336,7 @@ export interface FileRoutesByFullPath {
   '/': typeof publicPublicIndexRoute
   '/dashboard': typeof appAppDashboardRoute
   '/media': typeof appAppMediaRoute
+  '/people': typeof appAppPeopleRoute
   '/signin': typeof authAuthSigninRoute
   '/signup': typeof authAuthSignupRoute
   '/forgot-password/$token': typeof authAuthForgotPasswordTokenRoute
@@ -332,6 +349,7 @@ export interface FileRoutesByTo {
   '/': typeof publicPublicIndexRoute
   '/dashboard': typeof appAppDashboardRoute
   '/media': typeof appAppMediaRoute
+  '/people': typeof appAppPeopleRoute
   '/signin': typeof authAuthSigninRoute
   '/signup': typeof authAuthSignupRoute
   '/forgot-password/$token': typeof authAuthForgotPasswordTokenRoute
@@ -350,6 +368,7 @@ export interface FileRoutesById {
   '/(public)/_public': typeof publicPublicRouteWithChildren
   '/(app)/_app/dashboard': typeof appAppDashboardRoute
   '/(app)/_app/media': typeof appAppMediaRoute
+  '/(app)/_app/people': typeof appAppPeopleRoute
   '/(auth)/_auth/signin': typeof authAuthSigninRoute
   '/(auth)/_auth/signup': typeof authAuthSignupRoute
   '/(public)/_public/': typeof publicPublicIndexRoute
@@ -365,6 +384,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/media'
+    | '/people'
     | '/signin'
     | '/signup'
     | '/forgot-password/$token'
@@ -376,6 +396,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/media'
+    | '/people'
     | '/signin'
     | '/signup'
     | '/forgot-password/$token'
@@ -392,6 +413,7 @@ export interface FileRouteTypes {
     | '/(public)/_public'
     | '/(app)/_app/dashboard'
     | '/(app)/_app/media'
+    | '/(app)/_app/people'
     | '/(auth)/_auth/signin'
     | '/(auth)/_auth/signup'
     | '/(public)/_public/'
@@ -440,7 +462,8 @@ export const routeTree = rootRoute
       "parent": "/(app)",
       "children": [
         "/(app)/_app/dashboard",
-        "/(app)/_app/media"
+        "/(app)/_app/media",
+        "/(app)/_app/people"
       ]
     },
     "/(auth)": {
@@ -480,6 +503,10 @@ export const routeTree = rootRoute
     },
     "/(app)/_app/media": {
       "filePath": "(app)/_app.media.tsx",
+      "parent": "/(app)/_app"
+    },
+    "/(app)/_app/people": {
+      "filePath": "(app)/_app.people.tsx",
       "parent": "/(app)/_app"
     },
     "/(auth)/_auth/signin": {
