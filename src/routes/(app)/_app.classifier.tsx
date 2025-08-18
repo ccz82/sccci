@@ -13,7 +13,7 @@ import { Label } from '~/components/ui/label';
 
 const mediaSchema = z.object({
   title: z.string().min(1, "Title is required."),
-  type: z.literal("event"),
+  type: z.enum(["event", "minute", "painting", "general"]),
   image: z.instanceof(File),
 })
 
