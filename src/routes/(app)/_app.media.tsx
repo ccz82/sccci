@@ -1,29 +1,57 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Search, TrashIcon, Upload } from 'lucide-react';
+import { Check, ChevronsUpDown, Search, TrashIcon, Upload } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { Button } from '~/components/ui/button';
 import { useRef, useState } from 'react';
 import { pb } from '~/lib/pb';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Input } from '~/components/ui/input';
 import { ScrollArea } from '~/components/ui/scroll-area';
 import { Label } from '~/components/ui/label';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "~/components/ui/command"
+import { cn } from '~/lib/utils';
 
 const mediaSchema = z.object({
   title: z.string().min(1, "Title is required."),
-  type: z.enum(["minute", "painting", "general"]),
+  group: z.string().min(1, "Group is required."),
   image: z.instanceof(File),
 })
 
 type MediaItem = z.infer<typeof mediaSchema>
 
 export const Route = createFileRoute('/(app)/_app/media')({
+  loader: async () => {
+    return await pb.collection("albums").getFullList()
+  },
   component: RouteComponent,
 })
 
 function RouteComponent() {
+  const albums = Route.useLoaderData();
   const [dragActive, setDragActive] = useState(false);
   const [files, setFiles] = useState<MediaItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,7 +73,7 @@ function RouteComponent() {
 
     const droppedFiles = Array.from(e.dataTransfer.files).map(file => ({
       title: file.name,
-      type: "general" as const,
+      group: "" as const,
       image: file,
     }))
     setFiles(prev => [...prev, ...droppedFiles])
@@ -55,7 +83,7 @@ function RouteComponent() {
     if (!e.target.files) return
     const chosenFiles = Array.from(e.target.files).map(file => ({
       title: file.name,
-      type: "general" as const,
+      group: "" as const,
       image: file,
     }))
     setFiles(prev => [...prev, ...chosenFiles])
@@ -75,7 +103,7 @@ function RouteComponent() {
         const parsed = mediaSchema.parse(item) // validate with zod
         const formData = new FormData()
         formData.append("title", parsed.title)
-        formData.append("type", parsed.type)
+        formData.append("group", parsed.group)
         formData.append("image", parsed.image)
 
         const record = await pb.collection("media").create(formData)
@@ -83,9 +111,9 @@ function RouteComponent() {
       }
       toast.success("All images uploaded successfully!")
       setFiles([])
-    } catch (err) {
+    } catch (err: any) {
       console.error("Upload error:", err)
-      toast.error("Validation or upload failed!")
+      toast.error("Please fill in all the required fields.")
     }
   }
 
@@ -134,7 +162,7 @@ function RouteComponent() {
                   </div>
                 </div>
               </div>
-              <ScrollArea className='bg-sidebar-primary-foreground rounded-md grow h-1 gap-2 '>
+              <ScrollArea className='bg-muted rounded-md grow h-1 gap-2 '>
                 <div className='grid grid-cols-2 gap-4 m-4'>
                   {files.map((item, i) => (
                     <div key={i} className="bg-background border border-border rounded-md flex items-start justify-between gap-4 p-4">
@@ -154,21 +182,80 @@ function RouteComponent() {
                             placeholder="Enter title"
                           />
                           <Label>
-                            Type
+                            Group
                           </Label>
-                          <Select
-                            value={item.type}
-                            onValueChange={(val: "minute" | "painting" | "general") => updateFile(i, { type: val })}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="minute">Meeting Minute</SelectItem>
-                              <SelectItem value="painting">Painting</SelectItem>
-                              <SelectItem value="general">General</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className={cn(
+                                  "w-full justify-between",
+                                  !item.group && "text-muted-foreground"
+                                )}
+                              >
+                                {item.group
+                                  ? albums.find(
+                                    (album) => album.id === item.group
+                                  )?.name
+                                  : "Select language"}
+                                <ChevronsUpDown className="opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                              <Command>
+                                <CommandInput
+                                  placeholder="Search albums..."
+                                  className="h-9"
+                                />
+                                <CommandList>
+                                  <CommandEmpty>No album found.</CommandEmpty>
+                                  <CommandGroup>
+                                    {albums.map((album) =>
+                                      <CommandItem
+                                        value={album.name}
+                                        key={album.id}
+                                        onSelect={() => updateFile(i, { group: album.id })}
+                                      >
+                                        <div className='flex flex-row items-center justify-between w-full'>
+                                          <div className='flex flex-row items-center gap-3'>
+                                            <Check
+                                              className={cn(
+                                                "ml-auto",
+                                                album.id === item.group
+                                                  ? "opacity-100"
+                                                  : "opacity-0"
+                                              )}
+                                            />
+                                            <p className='mr-4'>
+                                              {album.name}
+                                            </p>
+                                          </div>
+                                          <div>
+
+                                            {album.type === "general" ?
+                                              <div className='text-blue-600'>
+                                                • General
+                                              </div>
+                                              :
+                                              album.type === "painting" ?
+                                                <div className='text-pink-700'>
+                                                  • Painting
+                                                </div>
+                                                :
+                                                <div className='text-orange-700'>
+                                                  • Meeting Minute
+                                                </div>
+                                            }
+                                          </div>
+                                        </div>
+                                      </CommandItem>)
+                                    }
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
                         </div>
                       </div>
                       <Button
@@ -182,7 +269,7 @@ function RouteComponent() {
                   ))}
                 </div>
               </ScrollArea>
-              <Button onClick={handleSubmit}>Submit All</Button>
+              <Button onClick={handleSubmit}>Upload All</Button>
             </>
           ) :
             <div
@@ -213,7 +300,7 @@ function RouteComponent() {
           }
         </TabsContent>
       </Tabs>
-    </div>
+    </div >
   )
 
 }
