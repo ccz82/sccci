@@ -19,6 +19,7 @@ import { Route as appAppImport } from './routes/(app)/_app'
 import { Route as publicPublicIndexImport } from './routes/(public)/_public.index'
 import { Route as authAuthSignupImport } from './routes/(auth)/_auth.signup'
 import { Route as authAuthSigninImport } from './routes/(auth)/_auth.signin'
+import { Route as appAppUserGuideImport } from './routes/(app)/_app.user-guide'
 import { Route as appAppPeopleImport } from './routes/(app)/_app.people'
 import { Route as appAppMediaImport } from './routes/(app)/_app.media'
 import { Route as appAppDashboardImport } from './routes/(app)/_app.dashboard'
@@ -81,6 +82,12 @@ const authAuthSigninRoute = authAuthSigninImport.update({
   id: '/signin',
   path: '/signin',
   getParentRoute: () => authAuthRoute,
+} as any)
+
+const appAppUserGuideRoute = appAppUserGuideImport.update({
+  id: '/user-guide',
+  path: '/user-guide',
+  getParentRoute: () => appAppRoute,
 } as any)
 
 const appAppPeopleRoute = appAppPeopleImport.update({
@@ -198,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAppPeopleImport
       parentRoute: typeof appAppImport
     }
+    '/(app)/_app/user-guide': {
+      id: '/(app)/_app/user-guide'
+      path: '/user-guide'
+      fullPath: '/user-guide'
+      preLoaderRoute: typeof appAppUserGuideImport
+      parentRoute: typeof appAppImport
+    }
     '/(auth)/_auth/signin': {
       id: '/(auth)/_auth/signin'
       path: '/signin'
@@ -256,12 +270,14 @@ interface appAppRouteChildren {
   appAppDashboardRoute: typeof appAppDashboardRoute
   appAppMediaRoute: typeof appAppMediaRoute
   appAppPeopleRoute: typeof appAppPeopleRoute
+  appAppUserGuideRoute: typeof appAppUserGuideRoute
 }
 
 const appAppRouteChildren: appAppRouteChildren = {
   appAppDashboardRoute: appAppDashboardRoute,
   appAppMediaRoute: appAppMediaRoute,
   appAppPeopleRoute: appAppPeopleRoute,
+  appAppUserGuideRoute: appAppUserGuideRoute,
 }
 
 const appAppRouteWithChildren =
@@ -337,6 +353,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof appAppDashboardRoute
   '/media': typeof appAppMediaRoute
   '/people': typeof appAppPeopleRoute
+  '/user-guide': typeof appAppUserGuideRoute
   '/signin': typeof authAuthSigninRoute
   '/signup': typeof authAuthSignupRoute
   '/forgot-password/$token': typeof authAuthForgotPasswordTokenRoute
@@ -350,6 +367,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof appAppDashboardRoute
   '/media': typeof appAppMediaRoute
   '/people': typeof appAppPeopleRoute
+  '/user-guide': typeof appAppUserGuideRoute
   '/signin': typeof authAuthSigninRoute
   '/signup': typeof authAuthSignupRoute
   '/forgot-password/$token': typeof authAuthForgotPasswordTokenRoute
@@ -369,6 +387,7 @@ export interface FileRoutesById {
   '/(app)/_app/dashboard': typeof appAppDashboardRoute
   '/(app)/_app/media': typeof appAppMediaRoute
   '/(app)/_app/people': typeof appAppPeopleRoute
+  '/(app)/_app/user-guide': typeof appAppUserGuideRoute
   '/(auth)/_auth/signin': typeof authAuthSigninRoute
   '/(auth)/_auth/signup': typeof authAuthSignupRoute
   '/(public)/_public/': typeof publicPublicIndexRoute
@@ -385,6 +404,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/media'
     | '/people'
+    | '/user-guide'
     | '/signin'
     | '/signup'
     | '/forgot-password/$token'
@@ -397,6 +417,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/media'
     | '/people'
+    | '/user-guide'
     | '/signin'
     | '/signup'
     | '/forgot-password/$token'
@@ -414,6 +435,7 @@ export interface FileRouteTypes {
     | '/(app)/_app/dashboard'
     | '/(app)/_app/media'
     | '/(app)/_app/people'
+    | '/(app)/_app/user-guide'
     | '/(auth)/_auth/signin'
     | '/(auth)/_auth/signup'
     | '/(public)/_public/'
@@ -463,7 +485,8 @@ export const routeTree = rootRoute
       "children": [
         "/(app)/_app/dashboard",
         "/(app)/_app/media",
-        "/(app)/_app/people"
+        "/(app)/_app/people",
+        "/(app)/_app/user-guide"
       ]
     },
     "/(auth)": {
@@ -507,6 +530,10 @@ export const routeTree = rootRoute
     },
     "/(app)/_app/people": {
       "filePath": "(app)/_app.people.tsx",
+      "parent": "/(app)/_app"
+    },
+    "/(app)/_app/user-guide": {
+      "filePath": "(app)/_app.user-guide.tsx",
       "parent": "/(app)/_app"
     },
     "/(auth)/_auth/signin": {

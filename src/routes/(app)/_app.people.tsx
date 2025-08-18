@@ -5,5 +5,11 @@ export const Route = createFileRoute('/(app)/_app/people')({
 })
 
 function RouteComponent() {
-  return <div>Hello "/(app)/_app/people"!</div>
+  return (
+    <div className='mx-6 my-5 flex flex-col'>
+      <h1 className='my-4 text-3xl font-bold'>
+        People
+      </h1>
+    </div>
+  )
 }

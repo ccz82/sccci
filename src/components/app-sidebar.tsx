@@ -1,7 +1,7 @@
 import ModeToggle from './mode-toggle'
 import { ProfileDialog } from './profile-dialog'
 import { Link, LinkProps } from '@tanstack/react-router'
-import { BookImage, LayoutDashboard, LucideIcon, ScanFace } from 'lucide-react'
+import { BookImage, BookOpenText, LayoutDashboard, LucideIcon, ScanFace } from 'lucide-react'
 import { useEffect } from 'react'
 import {
   Sidebar,
@@ -9,6 +9,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -24,6 +25,7 @@ const sidebarNavItems: SidebarNavItem[] = [
   { name: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' },
   { name: 'Media Library', icon: BookImage, to: '/media' },
   { name: 'People', icon: ScanFace, to: '/people' },
+  { name: 'User Guide', icon: BookOpenText, to: '/user-guide' },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -40,6 +42,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       collapsible="none"
     >
       <SidebarContent>
+        {/* don't show for now, dark mode makes text in logo impossible to see. */}
+        {/* <SidebarHeader className='m-3'> */}
+        {/*   <img src="/logo.png" /> */}
+        {/* </SidebarHeader> */}
         <SidebarGroup>
           <SidebarGroupContent className="px-1.5 md:px-0">
             <SidebarMenu>
