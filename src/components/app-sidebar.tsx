@@ -26,6 +26,7 @@ const sidebarNavItems: SidebarNavItem[] = [
   { name: 'Media Library', icon: BookImage, to: '/media' },
   { name: 'People', icon: ScanFace, to: '/people' },
   { name: 'User Guide', icon: BookOpenText, to: '/user-guide' },
+  { name: 'OCR', icon: BookOpenText, to: '/ocr' },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
