@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Search, TrashIcon, Upload } from 'lucide-react';
+import { Search, TrashIcon, Upload, PencilIcon } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { Button } from '~/components/ui/button';
 import { useRef, useState } from 'react';
@@ -13,7 +13,7 @@ import { Label } from '~/components/ui/label';
 
 const mediaSchema = z.object({
   title: z.string().min(1, "Title is required."),
-  type: z.enum(["minute", "painting", "general"]),
+  type: z.literal("event"),
   image: z.instanceof(File),
 })
 
@@ -21,7 +21,8 @@ type MediaItem = z.infer<typeof mediaSchema> & {
   classification?: {
     label: 'casual' | 'diplomatic',
     analysis: string
-  }
+  },
+  _editingClassification?: boolean;
 }
 
 // Mock AI classification function
@@ -61,7 +62,7 @@ function RouteComponent() {
       const classification = await mockClassifyImage(file);
       return {
         title: file.name,
-        type: "general" as const,
+  type: "event" as const,
         image: file,
         classification,
       };
@@ -75,7 +76,7 @@ function RouteComponent() {
       const classification = await mockClassifyImage(file);
       return {
         title: file.name,
-        type: "general" as const,
+  type: "event" as const,
         image: file,
         classification,
       };
@@ -97,10 +98,14 @@ function RouteComponent() {
         const parsed = mediaSchema.parse(item) // validate with zod
         const formData = new FormData()
         formData.append("title", parsed.title)
-        formData.append("type", parsed.type)
+        formData.append("type", "event")
         formData.append("image", parsed.image)
+        if (item.classification) {
+          formData.append("analysis", item.classification.analysis)
+          formData.append("classification_label", item.classification.label)
+        }
 
-        const record = await pb.collection("media").create(formData)
+        const record = await pb.collection("events").create(formData)
         console.log("Uploaded:", record)
       }
       toast.success("All images uploaded successfully!")
@@ -180,7 +185,7 @@ function RouteComponent() {
                           </Label>
                           <Select
                             value={item.type}
-                            onValueChange={(val: "minute" | "painting" | "general") => updateFile(i, { type: val })}
+                            onValueChange={(val: "minute" | "painting" | "general" | "event") => updateFile(i, { type: val })}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select type" />
@@ -189,16 +194,37 @@ function RouteComponent() {
                               <SelectItem value="minute">Meeting Minute</SelectItem>
                               <SelectItem value="painting">Painting</SelectItem>
                               <SelectItem value="general">General</SelectItem>
+                              <SelectItem value="event">Event</SelectItem>
                             </SelectContent>
                           </Select>
                           {item.classification && (
                             <div className="mt-2 p-2 border rounded bg-muted">
-                              <div className="font-semibold">
+                              <div className="font-semibold flex items-center gap-2">
                                 Classified as: <span className={item.classification.label === 'casual' ? 'text-blue-600' : 'text-green-700'}>{item.classification.label.charAt(0).toUpperCase() + item.classification.label.slice(1)}</span>
+                                <Button size="icon" variant="ghost" onClick={() => updateFile(i, { _editingClassification: true })} aria-label="Edit classification">
+                                  <PencilIcon className="w-4 h-4" />
+                                </Button>
                               </div>
-                              <div className="text-sm text-muted-foreground mt-1">
-                                {item.classification.analysis}
-                              </div>
+                              {item._editingClassification ? (
+                                <div className="flex flex-col gap-2 mt-2">
+                                  <Select value={item.classification.label} onValueChange={val => updateFile(i, { classification: { ...item.classification!, label: val as 'casual' | 'diplomatic' } })}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="casual">Casual</SelectItem>
+                                      <SelectItem value="diplomatic">Diplomatic</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <Input value={item.classification.analysis} onChange={e => updateFile(i, { classification: { ...item.classification!, analysis: e.target.value } })} placeholder="Analysis" />
+                                  <div className="flex gap-2">
+                                    <Button size="sm" onClick={() => updateFile(i, { _editingClassification: false })}>Save</Button>
+                                    <Button size="sm" variant="ghost" onClick={() => updateFile(i, { _editingClassification: false })}>Cancel</Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-sm text-muted-foreground mt-1">
+                                  {item.classification.analysis}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
