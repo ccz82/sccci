@@ -43,11 +43,19 @@ function ClassifyPage() {
     setClassifications(prev => prev.map((c, i) => i === idx ? { label, caption: getAnalysis(label) } : c));
   };
 
-  const handleSave = async () => {
-    // Here you would update the records in PocketBase with the selected classification/caption
-    // For now, just show a toast or navigate
-    // Example: await pb.collection('media').update(...)
-    setResults(classifications);
+  const handleSave = async (idx: number) => {
+    // Save classification and caption to PocketBase for the image
+    const image = images[idx];
+    const { label, caption } = classifications[idx];
+    if (image && image.id) {
+      await pb.collection('media').update(image.id, {
+        class: label,
+        ai_caption: caption,
+      });
+    }
+    // Set flag for toast and navigate back
+    localStorage.setItem('showClassifiedToast', '1');
+    navigate({ to: '/classifier' });
   };
 
   if (!images.length) {
@@ -78,11 +86,13 @@ function ClassifyPage() {
               </select>
               <Label>AI Caption</Label>
               <Input value={classifications[i]?.caption || ''} readOnly />
+              <Button className="mt-2" onClick={() => handleSave(i)}>
+                Classify
+              </Button>
             </div>
           ))}
         </div>
       </ScrollArea>
-      <Button className="mt-4" onClick={handleSave}>Save Classifications</Button>
     </div>
   );
 }
