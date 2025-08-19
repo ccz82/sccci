@@ -21,6 +21,7 @@ import { Route as authAuthSignupImport } from './routes/(auth)/_auth.signup'
 import { Route as authAuthSigninImport } from './routes/(auth)/_auth.signin'
 import { Route as appAppUserGuideImport } from './routes/(app)/_app.user-guide'
 import { Route as appAppPeopleImport } from './routes/(app)/_app.people'
+import { Route as appAppPaintingsImport } from './routes/(app)/_app.paintings'
 import { Route as appAppOcrImport } from './routes/(app)/_app.ocr'
 import { Route as appAppMediaImport } from './routes/(app)/_app.media'
 import { Route as appAppDashboardImport } from './routes/(app)/_app.dashboard'
@@ -94,6 +95,12 @@ const appAppUserGuideRoute = appAppUserGuideImport.update({
 const appAppPeopleRoute = appAppPeopleImport.update({
   id: '/people',
   path: '/people',
+  getParentRoute: () => appAppRoute,
+} as any)
+
+const appAppPaintingsRoute = appAppPaintingsImport.update({
+  id: '/paintings',
+  path: '/paintings',
   getParentRoute: () => appAppRoute,
 } as any)
 
@@ -212,6 +219,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAppOcrImport
       parentRoute: typeof appAppImport
     }
+    '/(app)/_app/paintings': {
+      id: '/(app)/_app/paintings'
+      path: '/paintings'
+      fullPath: '/paintings'
+      preLoaderRoute: typeof appAppPaintingsImport
+      parentRoute: typeof appAppImport
+    }
     '/(app)/_app/people': {
       id: '/(app)/_app/people'
       path: '/people'
@@ -284,6 +298,7 @@ interface appAppRouteChildren {
   appAppDashboardRoute: typeof appAppDashboardRoute
   appAppMediaRoute: typeof appAppMediaRoute
   appAppOcrRoute: typeof appAppOcrRoute
+  appAppPaintingsRoute: typeof appAppPaintingsRoute
   appAppPeopleRoute: typeof appAppPeopleRoute
   appAppUserGuideRoute: typeof appAppUserGuideRoute
 }
@@ -292,6 +307,7 @@ const appAppRouteChildren: appAppRouteChildren = {
   appAppDashboardRoute: appAppDashboardRoute,
   appAppMediaRoute: appAppMediaRoute,
   appAppOcrRoute: appAppOcrRoute,
+  appAppPaintingsRoute: appAppPaintingsRoute,
   appAppPeopleRoute: appAppPeopleRoute,
   appAppUserGuideRoute: appAppUserGuideRoute,
 }
@@ -369,6 +385,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof appAppDashboardRoute
   '/media': typeof appAppMediaRoute
   '/ocr': typeof appAppOcrRoute
+  '/paintings': typeof appAppPaintingsRoute
   '/people': typeof appAppPeopleRoute
   '/user-guide': typeof appAppUserGuideRoute
   '/signin': typeof authAuthSigninRoute
@@ -384,6 +401,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof appAppDashboardRoute
   '/media': typeof appAppMediaRoute
   '/ocr': typeof appAppOcrRoute
+  '/paintings': typeof appAppPaintingsRoute
   '/people': typeof appAppPeopleRoute
   '/user-guide': typeof appAppUserGuideRoute
   '/signin': typeof authAuthSigninRoute
@@ -405,6 +423,7 @@ export interface FileRoutesById {
   '/(app)/_app/dashboard': typeof appAppDashboardRoute
   '/(app)/_app/media': typeof appAppMediaRoute
   '/(app)/_app/ocr': typeof appAppOcrRoute
+  '/(app)/_app/paintings': typeof appAppPaintingsRoute
   '/(app)/_app/people': typeof appAppPeopleRoute
   '/(app)/_app/user-guide': typeof appAppUserGuideRoute
   '/(auth)/_auth/signin': typeof authAuthSigninRoute
@@ -423,6 +442,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/media'
     | '/ocr'
+    | '/paintings'
     | '/people'
     | '/user-guide'
     | '/signin'
@@ -437,6 +457,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/media'
     | '/ocr'
+    | '/paintings'
     | '/people'
     | '/user-guide'
     | '/signin'
@@ -456,6 +477,7 @@ export interface FileRouteTypes {
     | '/(app)/_app/dashboard'
     | '/(app)/_app/media'
     | '/(app)/_app/ocr'
+    | '/(app)/_app/paintings'
     | '/(app)/_app/people'
     | '/(app)/_app/user-guide'
     | '/(auth)/_auth/signin'
@@ -508,6 +530,7 @@ export const routeTree = rootRoute
         "/(app)/_app/dashboard",
         "/(app)/_app/media",
         "/(app)/_app/ocr",
+        "/(app)/_app/paintings",
         "/(app)/_app/people",
         "/(app)/_app/user-guide"
       ]
@@ -553,6 +576,10 @@ export const routeTree = rootRoute
     },
     "/(app)/_app/ocr": {
       "filePath": "(app)/_app.ocr.tsx",
+      "parent": "/(app)/_app"
+    },
+    "/(app)/_app/paintings": {
+      "filePath": "(app)/_app.paintings.tsx",
       "parent": "/(app)/_app"
     },
     "/(app)/_app/people": {
