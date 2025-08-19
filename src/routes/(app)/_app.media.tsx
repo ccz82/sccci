@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Check, ChevronsUpDown, Filter, Grid, List, Pencil, Plus, Search, SearchX, Trash2, TrashIcon, Upload } from 'lucide-react';
+import { Check, CheckSquare, ChevronsUpDown, Filter, Grid, List, Pencil, Plus, Search, SearchX, SquareDashedMousePointer, Trash2, TrashIcon, Upload } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { Button } from '~/components/ui/button';
 import { useRef, useState } from 'react';
@@ -76,7 +76,7 @@ export default function MediaView({ albums, media }: { albums: any[], media: any
 
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
   const [moveTarget, setMoveTarget] = useState<string | null>(null);
-
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   return (
     <TabsContent value="view" className="flex flex-col gap-4">
 
@@ -118,28 +118,82 @@ export default function MediaView({ albums, media }: { albums: any[], media: any
         </DialogContent>
       </Dialog>
       {/* Search + Create Album only in album list view */}
+
+      {/* Search + Create Album only in album list view */}
       {!selectedAlbum && (
         <div className="justify-between flex flex-row gap-4 items-center">
-          <Input
-            placeholder="Search albums..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-3/5"
-          />
+          <div className="flex items-center gap-4 w-3/5">
+            <Input
+              placeholder="Search albums..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
-          <div className='flex flex-row items-center  gap-2'>
+          <div className="flex flex-row items-center gap-2">
 
+            <p className="text-sm text-muted-foreground"> {albums.length} albums • {media.length} images
+            </p>
+            {/* New Album */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button><Plus />New Album</Button>
               </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>New Album</DialogTitle>
+                  <DialogDescription>Create a new album to organize images.</DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col gap-3 py-2">
+                  <Label>Name</Label>
+                  <Input
+                    value={newAlbumName}
+                    onChange={(e) => setNewAlbumName(e.target.value)}
+                    placeholder="Album name"
+                  />
+                  <Label>Type</Label>
+                  <Select value={newAlbumType} onValueChange={setNewAlbumType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="general">General</SelectItem>
+                      <SelectItem value="painting">Painting</SelectItem>
+                      <SelectItem value="meeting">Meeting Minute</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        await pb.collection("albums").create({
+                          name: newAlbumName,
+                          type: newAlbumType,
+                        });
+                        toast.success("Album created!");
+                        setDialogOpen(false);
+                        setNewAlbumName("");
+                        setNewAlbumType("general");
+                      } catch (err) {
+                        toast.error("Failed to create album.");
+                      }
+                    }}
+                  >
+                    Create
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
             </Dialog>
+
             <Button variant="outline" onClick={toggleViewMode}>
               {viewMode === "grid" ? <List /> : <Grid />}
             </Button>
           </div>
         </div>
       )}
+
 
       {/* Album list or Album view */}
       {!selectedAlbum ? (
@@ -157,7 +211,9 @@ export default function MediaView({ albums, media }: { albums: any[], media: any
                   : "flex flex-col"
               )}
             >
+
               {filteredAlbums.map(album => {
+                const albumCount = media.filter(m => m.album === album.id).length;
                 const firstImage = media.find(m => m.album === album.id);
                 return (
                   <div
@@ -174,7 +230,7 @@ export default function MediaView({ albums, media }: { albums: any[], media: any
                   >
                     {firstImage ? (
                       <img
-                        src={pb.files.getUrl(firstImage, firstImage.image)}
+                        src={pb.files.getURL(firstImage, firstImage.image)}
                         className={cn(
                           "object-cover",
                           viewMode === "grid"
@@ -193,7 +249,10 @@ export default function MediaView({ albums, media }: { albums: any[], media: any
                       </div>
                     )}
                     <div className="p-2 flex flex-row justify-between items-center w-full">
-                      <p className="font-semibold">{album.name}</p>
+                      <div>
+                        <p className="font-semibold">{album.name}</p>
+                        <p className="text-xs text-muted-foreground">{albumCount} images</p>
+                      </div>
                       <p
                         className={cn(
                           "text-sm",
@@ -228,7 +287,10 @@ export default function MediaView({ albums, media }: { albums: any[], media: any
                   No image
                 </div>
                 <div className="p-2 flex flex-row justify-between items-center w-full">
-                  <p className="font-semibold">Unassigned</p>
+                  <div>
+                    <p className="font-semibold">Unassigned</p>
+                    <p className="text-xs text-muted-foreground">{media.filter(m => !m.album).length} images</p>
+                  </div>
                   <p className="text-sm text-gray-500">• unassigned</p>
                 </div>
               </div>
@@ -248,6 +310,7 @@ export default function MediaView({ albums, media }: { albums: any[], media: any
                   setSelectedImages([]) // reset on exit
                 }}
               >
+              <SquareDashedMousePointer />
                 {selectMode ? "Exit Select Mode" : "Select Images"}
               </Button>
 
@@ -263,6 +326,7 @@ export default function MediaView({ albums, media }: { albums: any[], media: any
                       }
                     }}
                   >
+                    <CheckSquare className="h-4 w-4 mr-2" />
                     {selectedImages.length === albumImages.length
                       ? "Deselect All"
                       : "Select All"}
@@ -281,30 +345,51 @@ export default function MediaView({ albums, media }: { albums: any[], media: any
                         <CommandList>
                           <CommandEmpty>No album found.</CommandEmpty>
                           <CommandGroup>
-                            {albums.map((album) => (
+                            {albums
+                              .filter(album => album.id !== selectedAlbum?.id) // Exclude current album
+                              .map((album) => (
+                                <CommandItem
+                                  key={album.id}
+                                  value={album.name}
+                                  onSelect={() => {
+                                    setMoveTarget(album.id);
+                                    setMoveDialogOpen(true);
+                                  }}
+                                >
+                                  <div className="flex flex-row items-center justify-between w-full">
+                                    <span>{album.name}</span>
+                                    <span
+                                      className={cn(
+                                        "text-sm",
+                                        album.type === "general"
+                                          ? "text-blue-600"
+                                          : album.type === "painting"
+                                            ? "text-pink-700"
+                                            : "text-orange-700"
+                                      )}
+                                    >
+                                      • {album.type}
+                                    </span>
+                                  </div>
+                                </CommandItem>
+                              ))}
+
+                            {/* Only show "Unassigned" option if not already in Unassigned album */}
+                            {selectedAlbum?.id !== null && (
                               <CommandItem
-                                key={album.id}
-                                value={album.name}
+                                key="__unassigned__"
+                                value="Unassigned"
                                 onSelect={() => {
-                                  setMoveTarget(album.id);
+                                  setMoveTarget(null);
                                   setMoveDialogOpen(true);
                                 }}
                               >
-                                {album.name}
+                                <div className="flex flex-row items-center justify-between w-full">
+                                  <span>Unassigned</span>
+                                  <span className="text-sm text-gray-500">• unassigned</span>
+                                </div>
                               </CommandItem>
-                            ))}
-
-                            {/* Add "Unassigned" as an option */}
-                            <CommandItem
-                              key="__unassigned__"
-                              value="Unassigned"
-                              onSelect={() => {
-                                setMoveTarget(null);
-                                setMoveDialogOpen(true);
-                              }}
-                            >
-                              Unassigned
-                            </CommandItem>
+                            )}
                           </CommandGroup>
                         </CommandList>
                       </Command>
@@ -329,13 +414,27 @@ export default function MediaView({ albums, media }: { albums: any[], media: any
                   >
                     <Trash2 className="mr-1" /> Delete
                   </Button>
+
                 </>
               )}
             </div>
             <div className='flex flex-row items-center  gap-2'>
-              <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
-                <Pencil /> Edit Album
-              </Button>
+              {/* Display total images */}
+              <p className="text-sm text-muted-foreground ml-2">
+                {albumImages.length} image{albumImages.length !== 1 ? "s" : ""}
+              </p>
+
+
+              {selectedAlbum.id && (
+                <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
+                  <TrashIcon /> Delete Album
+                </Button>
+              )}
+              {selectedAlbum.id && (
+                <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+                  <Pencil /> Edit Album
+                </Button>
+              )}
               <Button variant="outline" onClick={toggleViewMode}>
                 {viewMode === "grid" ? <List /> : <Grid />}
               </Button>
@@ -367,12 +466,12 @@ export default function MediaView({ albums, media }: { albums: any[], media: any
                       if (selectMode) {
                         toggleSelect(img.id);
                       } else {
-                        setEnlargedImage(pb.files.getUrl(img, img.image));
+                        setEnlargedImage(pb.files.getURL(img, img.image));
                       }
                     }}
                   >
                     <img
-                      src={pb.files.getUrl(img, img.image)}
+                      src={pb.files.getURL(img, img.image)}
                       alt={img.filename}
                       className={cn(
                         "object-cover",
@@ -392,8 +491,6 @@ export default function MediaView({ albums, media }: { albums: any[], media: any
         </div>
       )}
 
-      {/* Enlarged image & edit album dialogs remain same */}
-
       <Dialog open={!!enlargedImage} onOpenChange={() => setEnlargedImage(null)}>
         <DialogContent className="max-w-4xl p-0">
           {enlargedImage && (
@@ -406,6 +503,89 @@ export default function MediaView({ albums, media }: { albums: any[], media: any
         </DialogContent>
       </Dialog>
 
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Album</DialogTitle>
+            <DialogDescription>Update this album’s details.</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 py-2">
+            <Label>Name</Label>
+            <Input
+              value={editAlbumName}
+              onChange={(e) => setEditAlbumName(e.target.value)}
+              placeholder="Album name"
+            />
+            <Label>Type</Label>
+            <Select value={editAlbumType} onValueChange={setEditAlbumType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="general">General</SelectItem>
+                <SelectItem value="painting">Painting</SelectItem>
+                <SelectItem value="meeting">Meeting Minute</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={async () => {
+                try {
+                  await pb.collection("albums").update(selectedAlbum.id, {
+                    name: editAlbumName,
+                    type: editAlbumType,
+                  });
+                  toast.success("Album updated!");
+                  setEditDialogOpen(false);
+                } catch (err) {
+                  toast.error("Failed to update album.");
+                }
+              }}
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Album</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{selectedAlbum?.name}"? Images inside will be moved to the "Unassigned" album.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                try {
+                  // Move all images to unassigned
+                  for (const img of albumImages) {
+                    await pb.collection("media").update(img.id, { album: null });
+                  }
+
+                  // Delete the album itself
+                  await pb.collection("albums").delete(selectedAlbum.id);
+
+                  toast.success("Album deleted! Images moved to Unassigned.");
+                  setDeleteDialogOpen(false);
+                  setSelectedAlbum(null);
+                } catch (err) {
+                  toast.error("Failed to delete album.");
+                }
+              }}
+            >
+              Confirm Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </TabsContent>
   );
 }
@@ -414,7 +594,7 @@ export default function MediaView({ albums, media }: { albums: any[], media: any
 
 const mediaSchema = z.object({
   filename: z.string().min(1, "Title is required."),
-  album: z.string().min(1, "Album is required."),
+  album: z.string(),
   image: z.instanceof(File),
 })
 
@@ -505,6 +685,7 @@ function RouteComponent() {
     <div className='w-full mx-6 my-4 flex flex-col'>
       <div className='my-4 flex flex-col gap-3'>
         <h1 className='text-3xl font-bold'>Media Library</h1>
+        <p className='text-muted-foreground'>Upload, organise, and view images and albums</p>
       </div>
 
       <Tabs defaultValue="view" className='h-full w-full'>
