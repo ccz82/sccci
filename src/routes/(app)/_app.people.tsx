@@ -6,10 +6,12 @@ export const Route = createFileRoute('/(app)/_app/people')({
 
 function RouteComponent() {
   return (
-    <div className='mx-6 my-5 flex flex-col'>
-      <h1 className='my-4 text-3xl font-bold'>
-        People
-      </h1>
+    <div className='w-full mx-6 my-4 flex flex-col'>
+      <div className='my-4 flex flex-col gap-3'>
+        <h1 className='text-3xl font-bold'>
+          People
+        </h1>
+      </div>
     </div>
   )
 }
