@@ -25,6 +25,7 @@ const sidebarNavItems: SidebarNavItem[] = [
   { name: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' },
   { name: 'Media Library', icon: BookImage, to: '/media' },
   { name: 'People', icon: ScanFace, to: '/people' },
+  { name: 'Classifier', icon: LayoutDashboard, to: '/classifier' },
   { name: 'OCR', icon: BookOpenText, to: '/ocr' },
   { name: 'Paintings', icon: Palette, to: '/paintings' },
   { name: 'User Guide', icon: BookOpenText, to: '/user-guide' },
