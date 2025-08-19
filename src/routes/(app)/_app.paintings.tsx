@@ -68,6 +68,25 @@ function RouteComponent() {
     });
   };
 
+  const navigateToElementDetection = () => {
+    const selectedMediaItems = Array.from(selectedItems).map(id => 
+      media.find(item => item.id === id)
+    ).filter(Boolean);
+    
+    if (selectedMediaItems.length === 0) return;
+    
+    // Store selected image IDs in context and navigate to Element Detection page
+    const imageIds = selectedMediaItems.map(item => item!.id);
+    setSelectedImageIds(imageIds);
+    
+    // Close the dialog
+    setShowProcessDialog(false);
+    
+    navigate({
+      to: '/paintings-element-detect'
+    });
+  };
+
   const filteredMedia = media.filter(item =>
     item.filename.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -579,12 +598,12 @@ function RouteComponent() {
                 AI Description
               </Button>
               <Button 
+                onClick={navigateToElementDetection}
                 variant="outline"
                 className="justify-start"
-                disabled
               >
                 <Search className="h-4 w-4 mr-2" />
-                Element Detection (Coming Soon)
+                Element Detection
               </Button>
             </div>
           </div>

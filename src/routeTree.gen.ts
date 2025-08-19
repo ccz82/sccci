@@ -21,6 +21,7 @@ import { Route as authAuthSignupImport } from './routes/(auth)/_auth.signup'
 import { Route as authAuthSigninImport } from './routes/(auth)/_auth.signin'
 import { Route as appAppUserGuideImport } from './routes/(app)/_app.user-guide'
 import { Route as appAppPeopleImport } from './routes/(app)/_app.people'
+import { Route as appAppPaintingsElementDetectImport } from './routes/(app)/_app.paintings-element-detect'
 import { Route as appAppPaintingsAiDescImport } from './routes/(app)/_app.paintings-ai-desc'
 import { Route as appAppPaintingsImport } from './routes/(app)/_app.paintings'
 import { Route as appAppOcrImport } from './routes/(app)/_app.ocr'
@@ -100,6 +101,13 @@ const appAppPeopleRoute = appAppPeopleImport.update({
   path: '/people',
   getParentRoute: () => appAppRoute,
 } as any)
+
+const appAppPaintingsElementDetectRoute =
+  appAppPaintingsElementDetectImport.update({
+    id: '/paintings-element-detect',
+    path: '/paintings-element-detect',
+    getParentRoute: () => appAppRoute,
+  } as any)
 
 const appAppPaintingsAiDescRoute = appAppPaintingsAiDescImport.update({
   id: '/paintings-ai-desc',
@@ -268,6 +276,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAppPaintingsAiDescImport
       parentRoute: typeof appAppImport
     }
+    '/(app)/_app/paintings-element-detect': {
+      id: '/(app)/_app/paintings-element-detect'
+      path: '/paintings-element-detect'
+      fullPath: '/paintings-element-detect'
+      preLoaderRoute: typeof appAppPaintingsElementDetectImport
+      parentRoute: typeof appAppImport
+    }
     '/(app)/_app/people': {
       id: '/(app)/_app/people'
       path: '/people'
@@ -344,6 +359,7 @@ interface appAppRouteChildren {
   appAppOcrRoute: typeof appAppOcrRoute
   appAppPaintingsRoute: typeof appAppPaintingsRoute
   appAppPaintingsAiDescRoute: typeof appAppPaintingsAiDescRoute
+  appAppPaintingsElementDetectRoute: typeof appAppPaintingsElementDetectRoute
   appAppPeopleRoute: typeof appAppPeopleRoute
   appAppUserGuideRoute: typeof appAppUserGuideRoute
 }
@@ -356,6 +372,7 @@ const appAppRouteChildren: appAppRouteChildren = {
   appAppOcrRoute: appAppOcrRoute,
   appAppPaintingsRoute: appAppPaintingsRoute,
   appAppPaintingsAiDescRoute: appAppPaintingsAiDescRoute,
+  appAppPaintingsElementDetectRoute: appAppPaintingsElementDetectRoute,
   appAppPeopleRoute: appAppPeopleRoute,
   appAppUserGuideRoute: appAppUserGuideRoute,
 }
@@ -437,6 +454,7 @@ export interface FileRoutesByFullPath {
   '/ocr': typeof appAppOcrRoute
   '/paintings': typeof appAppPaintingsRoute
   '/paintings-ai-desc': typeof appAppPaintingsAiDescRoute
+  '/paintings-element-detect': typeof appAppPaintingsElementDetectRoute
   '/people': typeof appAppPeopleRoute
   '/user-guide': typeof appAppUserGuideRoute
   '/signin': typeof authAuthSigninRoute
@@ -456,6 +474,7 @@ export interface FileRoutesByTo {
   '/ocr': typeof appAppOcrRoute
   '/paintings': typeof appAppPaintingsRoute
   '/paintings-ai-desc': typeof appAppPaintingsAiDescRoute
+  '/paintings-element-detect': typeof appAppPaintingsElementDetectRoute
   '/people': typeof appAppPeopleRoute
   '/user-guide': typeof appAppUserGuideRoute
   '/signin': typeof authAuthSigninRoute
@@ -481,6 +500,7 @@ export interface FileRoutesById {
   '/(app)/_app/ocr': typeof appAppOcrRoute
   '/(app)/_app/paintings': typeof appAppPaintingsRoute
   '/(app)/_app/paintings-ai-desc': typeof appAppPaintingsAiDescRoute
+  '/(app)/_app/paintings-element-detect': typeof appAppPaintingsElementDetectRoute
   '/(app)/_app/people': typeof appAppPeopleRoute
   '/(app)/_app/user-guide': typeof appAppUserGuideRoute
   '/(auth)/_auth/signin': typeof authAuthSigninRoute
@@ -503,6 +523,7 @@ export interface FileRouteTypes {
     | '/ocr'
     | '/paintings'
     | '/paintings-ai-desc'
+    | '/paintings-element-detect'
     | '/people'
     | '/user-guide'
     | '/signin'
@@ -521,6 +542,7 @@ export interface FileRouteTypes {
     | '/ocr'
     | '/paintings'
     | '/paintings-ai-desc'
+    | '/paintings-element-detect'
     | '/people'
     | '/user-guide'
     | '/signin'
@@ -544,6 +566,7 @@ export interface FileRouteTypes {
     | '/(app)/_app/ocr'
     | '/(app)/_app/paintings'
     | '/(app)/_app/paintings-ai-desc'
+    | '/(app)/_app/paintings-element-detect'
     | '/(app)/_app/people'
     | '/(app)/_app/user-guide'
     | '/(auth)/_auth/signin'
@@ -600,6 +623,7 @@ export const routeTree = rootRoute
         "/(app)/_app/ocr",
         "/(app)/_app/paintings",
         "/(app)/_app/paintings-ai-desc",
+        "/(app)/_app/paintings-element-detect",
         "/(app)/_app/people",
         "/(app)/_app/user-guide"
       ]
@@ -661,6 +685,10 @@ export const routeTree = rootRoute
     },
     "/(app)/_app/paintings-ai-desc": {
       "filePath": "(app)/_app.paintings-ai-desc.tsx",
+      "parent": "/(app)/_app"
+    },
+    "/(app)/_app/paintings-element-detect": {
+      "filePath": "(app)/_app.paintings-element-detect.tsx",
       "parent": "/(app)/_app"
     },
     "/(app)/_app/people": {
