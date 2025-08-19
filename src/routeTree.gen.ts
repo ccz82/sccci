@@ -24,6 +24,7 @@ import { Route as appAppPeopleImport } from './routes/(app)/_app.people'
 import { Route as appAppOcrImport } from './routes/(app)/_app.ocr'
 import { Route as appAppMediaImport } from './routes/(app)/_app.media'
 import { Route as appAppDashboardImport } from './routes/(app)/_app.dashboard'
+import { Route as appAppClassifyImport } from './routes/(app)/_app.classify'
 import { Route as appAppClassifierImport } from './routes/(app)/_app.classifier'
 import { Route as authAuthVerifyAccountIndexImport } from './routes/(auth)/_auth.verify-account.index'
 import { Route as authAuthForgotPasswordIndexImport } from './routes/(auth)/_auth.forgot-password.index'
@@ -116,6 +117,12 @@ const appAppDashboardRoute = appAppDashboardImport.update({
   getParentRoute: () => appAppRoute,
 } as any)
 
+const appAppClassifyRoute = appAppClassifyImport.update({
+  id: '/classify',
+  path: '/classify',
+  getParentRoute: () => appAppRoute,
+} as any)
+
 const appAppClassifierRoute = appAppClassifierImport.update({
   id: '/classifier',
   path: '/classifier',
@@ -203,6 +210,13 @@ declare module '@tanstack/react-router' {
       path: '/classifier'
       fullPath: '/classifier'
       preLoaderRoute: typeof appAppClassifierImport
+      parentRoute: typeof appAppImport
+    }
+    '/(app)/_app/classify': {
+      id: '/(app)/_app/classify'
+      path: '/classify'
+      fullPath: '/classify'
+      preLoaderRoute: typeof appAppClassifyImport
       parentRoute: typeof appAppImport
     }
     '/(app)/_app/dashboard': {
@@ -296,6 +310,7 @@ declare module '@tanstack/react-router' {
 
 interface appAppRouteChildren {
   appAppClassifierRoute: typeof appAppClassifierRoute
+  appAppClassifyRoute: typeof appAppClassifyRoute
   appAppDashboardRoute: typeof appAppDashboardRoute
   appAppMediaRoute: typeof appAppMediaRoute
   appAppOcrRoute: typeof appAppOcrRoute
@@ -305,6 +320,7 @@ interface appAppRouteChildren {
 
 const appAppRouteChildren: appAppRouteChildren = {
   appAppClassifierRoute: appAppClassifierRoute,
+  appAppClassifyRoute: appAppClassifyRoute,
   appAppDashboardRoute: appAppDashboardRoute,
   appAppMediaRoute: appAppMediaRoute,
   appAppOcrRoute: appAppOcrRoute,
@@ -383,6 +399,7 @@ const publicRouteWithChildren =
 export interface FileRoutesByFullPath {
   '/': typeof publicPublicIndexRoute
   '/classifier': typeof appAppClassifierRoute
+  '/classify': typeof appAppClassifyRoute
   '/dashboard': typeof appAppDashboardRoute
   '/media': typeof appAppMediaRoute
   '/ocr': typeof appAppOcrRoute
@@ -399,6 +416,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof publicPublicIndexRoute
   '/classifier': typeof appAppClassifierRoute
+  '/classify': typeof appAppClassifyRoute
   '/dashboard': typeof appAppDashboardRoute
   '/media': typeof appAppMediaRoute
   '/ocr': typeof appAppOcrRoute
@@ -421,6 +439,7 @@ export interface FileRoutesById {
   '/(public)': typeof publicRouteWithChildren
   '/(public)/_public': typeof publicPublicRouteWithChildren
   '/(app)/_app/classifier': typeof appAppClassifierRoute
+  '/(app)/_app/classify': typeof appAppClassifyRoute
   '/(app)/_app/dashboard': typeof appAppDashboardRoute
   '/(app)/_app/media': typeof appAppMediaRoute
   '/(app)/_app/ocr': typeof appAppOcrRoute
@@ -440,6 +459,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/classifier'
+    | '/classify'
     | '/dashboard'
     | '/media'
     | '/ocr'
@@ -455,6 +475,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/classifier'
+    | '/classify'
     | '/dashboard'
     | '/media'
     | '/ocr'
@@ -475,6 +496,7 @@ export interface FileRouteTypes {
     | '/(public)'
     | '/(public)/_public'
     | '/(app)/_app/classifier'
+    | '/(app)/_app/classify'
     | '/(app)/_app/dashboard'
     | '/(app)/_app/media'
     | '/(app)/_app/ocr'
@@ -528,6 +550,7 @@ export const routeTree = rootRoute
       "parent": "/(app)",
       "children": [
         "/(app)/_app/classifier",
+        "/(app)/_app/classify",
         "/(app)/_app/dashboard",
         "/(app)/_app/media",
         "/(app)/_app/ocr",
@@ -568,6 +591,10 @@ export const routeTree = rootRoute
     },
     "/(app)/_app/classifier": {
       "filePath": "(app)/_app.classifier.tsx",
+      "parent": "/(app)/_app"
+    },
+    "/(app)/_app/classify": {
+      "filePath": "(app)/_app.classify.tsx",
       "parent": "/(app)/_app"
     },
     "/(app)/_app/dashboard": {

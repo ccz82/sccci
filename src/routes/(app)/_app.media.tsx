@@ -38,10 +38,11 @@ import { cn } from '~/lib/utils';
 const mediaSchema = z.object({
   filename: z.string().min(1, "Title is required."),
   album: z.string().min(1, "Album is required."),
+  type: z.enum(["event", "minute", "painting", "general"]),
   image: z.instanceof(File),
 })
 
-type MediaItem = z.infer<typeof mediaSchema>
+type MediaItem = z.infer<typeof mediaSchema>;
 
 export const Route = createFileRoute('/(app)/_app/media')({
   loader: async () => {
@@ -69,27 +70,28 @@ function RouteComponent() {
   }
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
     const droppedFiles = Array.from(e.dataTransfer.files).map(file => ({
       filename: file.name,
       album: "" as const,
+      type: "event" as const,
       image: file,
-    }))
-    setFiles(prev => [...prev, ...droppedFiles])
-  }
+    }));
+    setFiles(prev => [...prev, ...droppedFiles]);
+  };
 
   const handleChooseFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return
+    if (!e.target.files) return;
     const chosenFiles = Array.from(e.target.files).map(file => ({
       filename: file.name,
       album: "" as const,
+      type: "event" as const,
       image: file,
-    }))
-    setFiles(prev => [...prev, ...chosenFiles])
-  }
+    }));
+    setFiles(prev => [...prev, ...chosenFiles]);
+  };
 
   const updateFile = (index: number, updates: Partial<MediaItem>) => {
     setFiles(prev => {
@@ -103,21 +105,20 @@ function RouteComponent() {
     try {
       for (const item of files) {
         const parsed = mediaSchema.parse(item) // validate with zod
-        const formData = new FormData()
-        formData.append("filename", parsed.filename)
-        formData.append("album", parsed.album)
-        formData.append("image", parsed.image)
-
-        const record = await pb.collection("media").create(formData)
-        console.log("Uploaded:", record)
+        const formData = new FormData();
+        formData.append("filename", parsed.filename);
+        formData.append("album", parsed.album);
+        formData.append("type", parsed.type);
+        formData.append("image", parsed.image);
+        await pb.collection("media").create(formData);
       }
-      toast.success("All images uploaded successfully!")
-      setFiles([])
+      toast.success("All images uploaded successfully!");
+      setFiles([]);
     } catch (err: any) {
-      console.error("Upload error:", err)
-      // toast.error("Please fill in all the required fields.")
+      console.error("Upload error:", err);
+      // toast.error("Please fill in all the required fields.");
     }
-  }
+  };
 
   const removeFile = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index))
@@ -397,17 +398,13 @@ function RouteComponent() {
                           className="w-30 h-30 object-cover rounded-md"
                         />
                         <div className='flex flex-col gap-2'>
-                          <Label>
-                            Filename
-                          </Label>
+                          <Label>Filename</Label>
                           <Input
                             value={item.filename}
                             onChange={e => updateFile(i, { filename: e.target.value })}
                             placeholder="Enter filename"
                           />
-                          <Label>
-                            Album
-                          </Label>
+                          <Label>Album</Label>
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button
@@ -457,18 +454,10 @@ function RouteComponent() {
                                           </div>
                                           <div>
                                             {album.type === "general" ?
-                                              <div className='text-blue-600'>
-                                                • General
-                                              </div>
-                                              :
-                                              album.type === "painting" ?
-                                                <div className='text-pink-700'>
-                                                  • Painting
-                                                </div>
-                                                :
-                                                <div className='text-orange-700'>
-                                                  • Meeting Minute
-                                                </div>
+                                              <div className='text-blue-600'>• General</div>
+                                              : album.type === "painting" ?
+                                                <div className='text-pink-700'>• Painting</div>
+                                                : <div className='text-orange-700'>• Meeting Minute</div>
                                             }
                                           </div>
                                         </div>
@@ -479,6 +468,16 @@ function RouteComponent() {
                               </Command>
                             </PopoverContent>
                           </Popover>
+                          <Label>Type</Label>
+                          <Select value={item.type} onValueChange={val => updateFile(i, { type: val as MediaItem['type'] })}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="event">Event</SelectItem>
+                              <SelectItem value="minute">Minute</SelectItem>
+                              <SelectItem value="painting">Painting</SelectItem>
+                              <SelectItem value="general">General</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                       <Button
