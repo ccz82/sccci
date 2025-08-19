@@ -207,7 +207,15 @@ function RouteComponent() {
                               </div>
                               {item._editingClassification ? (
                                 <div className="flex flex-col gap-2 mt-2">
-                                  <Select value={item.classification.label} onValueChange={val => updateFile(i, { classification: { ...item.classification!, label: val as 'casual' | 'diplomatic' } })}>
+                                  <Select value={item.classification.label} onValueChange={val => {
+                                    let analysis = '';
+                                    if (val === 'casual') {
+                                      analysis = 'The image contains informal attire and relaxed body language, indicating a casual event.';
+                                    } else if (val === 'diplomatic') {
+                                      analysis = 'The image shows formal clothing and structured setting, suggesting a diplomatic event.';
+                                    }
+                                    updateFile(i, { classification: { ...item.classification!, label: val as 'casual' | 'diplomatic', analysis } });
+                                  }}>
                                     <SelectTrigger><SelectValue /></SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="casual">Casual</SelectItem>
