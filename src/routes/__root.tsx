@@ -38,8 +38,11 @@ function RootComponent() {
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
         <Outlet />
         <Toaster />
+        {/*
+            not using devtools for now, can comment out
         <TanStackRouterDevtools position="bottom-right" />
         <ReactQueryDevtools buttonPosition="bottom-right" />
+          */}
       </ThemeProvider>
     </>
   )
