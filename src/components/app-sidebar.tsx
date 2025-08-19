@@ -1,7 +1,7 @@
 import ModeToggle from './mode-toggle'
 import { ProfileDialog } from './profile-dialog'
 import { Link, LinkProps } from '@tanstack/react-router'
-import { BookImage, BookOpenText, LayoutDashboard, LucideIcon, ScanFace } from 'lucide-react'
+import { BookImage, BookOpenText, Cat, LayoutDashboard, LucideIcon, ScanFace } from 'lucide-react'
 import { useEffect } from 'react'
 import {
   Sidebar,
