@@ -1,15 +1,16 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Badge } from '~/components/ui/badge'
 import { Card, CardContent } from '~/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
 import { ScrollArea } from '~/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { pb } from '~/lib/pb'
 import { cn } from '~/lib/utils'
-import { Search, Grid, List, CheckSquare, Square, ImageIcon, FolderIcon, Trash2 } from 'lucide-react'
+import { Search, Grid, List, CheckSquare, Square, ImageIcon, FolderIcon, Trash2, Cog, Sparkles } from 'lucide-react'
+import { useSelectedImages } from '~/contexts/selected-images-context'
 
 export const Route = createFileRoute('/(app)/_app/paintings')({
   loader: async () => {
@@ -36,12 +37,36 @@ export const Route = createFileRoute('/(app)/_app/paintings')({
 
 function RouteComponent() {
   const { albums, media, allAlbums } = Route.useLoaderData();
+  const navigate = useNavigate();
+  const { setSelectedImageIds } = useSelectedImages();
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectMode, setSelectMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [selectedAlbums, setSelectedAlbums] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<'images' | 'albums'>('images');
+  
+  // Process dialog state
+  const [showProcessDialog, setShowProcessDialog] = useState(false);
+
+  const navigateToAIDescription = () => {
+    const selectedMediaItems = Array.from(selectedItems).map(id => 
+      media.find(item => item.id === id)
+    ).filter(Boolean);
+    
+    if (selectedMediaItems.length === 0) return;
+    
+    // Store selected image IDs in context and navigate to AI description page
+    const imageIds = selectedMediaItems.map(item => item!.id);
+    setSelectedImageIds(imageIds);
+    
+    // Close the dialog
+    setShowProcessDialog(false);
+    
+    navigate({
+      to: '/paintings-ai-desc'
+    });
+  };
 
   const filteredMedia = media.filter(item =>
     item.filename.toLowerCase().includes(searchTerm.toLowerCase())
@@ -174,6 +199,16 @@ function RouteComponent() {
               : `Select All`
             }
           </Button>
+          {activeTab === 'images' && selectedItems.size > 0 && (
+            <Button 
+              variant="default" 
+              size="sm" 
+              onClick={() => setShowProcessDialog(true)}
+            >
+              <Cog className="h-4 w-4 mr-2" />
+              Process ({selectedItems.size})
+            </Button>
+          )}
           {((activeTab === 'images' && selectedItems.size > 0) || 
             (activeTab === 'albums' && selectedAlbums.size > 0)) && (
             <Button variant="destructive" size="sm" onClick={deleteSelected}>
@@ -260,12 +295,12 @@ function RouteComponent() {
                                   {item.filename}
                                 </p>
                                 {album && (
-                                  <p className="w-full flex flex-row items-center justify-between text-xs text-muted-foreground">
+                                  <div className="w-full flex flex-row items-center justify-between text-xs text-muted-foreground">
                                     {album.name}{" "}
                                     <div className='text-pink-700'>
                                       • Painting
                                     </div>
-                                  </p>
+                                  </div>
                                 )}
                               </div>
                             </div>
@@ -524,6 +559,38 @@ function RouteComponent() {
           </ScrollArea>
         </TabsContent>
       </Tabs>
+
+      {/* Process Selection Dialog */}
+      <Dialog open={showProcessDialog} onOpenChange={setShowProcessDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Process Selected Images</DialogTitle>
+            <DialogDescription>
+              Choose how you want to process the {selectedItems.size} selected image{selectedItems.size > 1 ? 's' : ''}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <Button 
+                onClick={navigateToAIDescription}
+                className="justify-start"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                AI Description
+              </Button>
+              <Button 
+                variant="outline"
+                className="justify-start"
+                disabled
+              >
+                <Search className="h-4 w-4 mr-2" />
+                Element Detection (Coming Soon)
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
