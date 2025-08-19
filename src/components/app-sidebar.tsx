@@ -1,7 +1,7 @@
 import ModeToggle from './mode-toggle'
 import { ProfileDialog } from './profile-dialog'
 import { Link, LinkProps } from '@tanstack/react-router'
-import { BookImage, BookOpenText, Cat, LayoutDashboard, LucideIcon, ScanFace } from 'lucide-react'
+import { BookImage, BookOpenText, Cat, LayoutDashboard, LucideIcon, ScanFace, Palette } from 'lucide-react'
 import { useEffect } from 'react'
 import {
   Sidebar,
@@ -25,9 +25,10 @@ const sidebarNavItems: SidebarNavItem[] = [
   { name: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' },
   { name: 'Media Library', icon: BookImage, to: '/media' },
   { name: 'People', icon: ScanFace, to: '/people' },
-  { name: 'User Guide', icon: BookOpenText, to: '/user-guide' },
   { name: 'Classifier', icon: LayoutDashboard, to: '/classifier' },
   { name: 'OCR', icon: BookOpenText, to: '/ocr' },
+  { name: 'Paintings', icon: Palette, to: '/paintings' },
+  { name: 'User Guide', icon: BookOpenText, to: '/user-guide' },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
