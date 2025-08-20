@@ -30,7 +30,6 @@ const sidebarNavItems: SidebarNavItem[] = [
   { name: 'OCR', icon: BookOpenText, to: '/ocr' },
   { name: 'Paintings', icon: Palette, to: '/paintings' },
   { name: 'Cultural Story Creator', icon: Star, to: '/csc' },
-  { name: 'User Guide', icon: BookOpenText, to: '/user-guide' },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

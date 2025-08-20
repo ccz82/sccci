@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { Button } from '~/components/ui/button'
+import { Textarea } from '~/components/ui/textarea'
 import { pb } from '~/lib/pb'
 import { cn } from '~/lib/utils'
 import { ArrowLeft, ChevronLeft, ChevronRight, Search, Check, X, RefreshCw } from 'lucide-react'
@@ -152,6 +153,7 @@ function RouteComponent() {
   const [detectionResult, setDetectionResult] = useState<DetectionResult | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showBoundingBoxes, setShowBoundingBoxes] = useState(true);
+  const [highlights, setHighlights] = useState('');
 
   // Load media based on selected image IDs from context
   useEffect(() => {
@@ -297,6 +299,7 @@ function RouteComponent() {
       setCurrentImageIndex(currentImageIndex + 1);
       setDetectionResult(null);
       setShowBoundingBoxes(true);
+      setHighlights('');
     }
   };
 
@@ -305,6 +308,7 @@ function RouteComponent() {
       setCurrentImageIndex(currentImageIndex - 1);
       setDetectionResult(null);
       setShowBoundingBoxes(true);
+      setHighlights('');
     }
   };
 
@@ -402,41 +406,14 @@ function RouteComponent() {
             )}
             
             {detectionResult && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowBoundingBoxes(!showBoundingBoxes)}
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  {showBoundingBoxes ? 'Hide Boxes' : 'Show Boxes'}
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={rejectDetection}
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Reject
-                </Button>
-                <Button
-                  onClick={acceptDetection}
-                  disabled={isSaving}
-                  size="sm"
-                >
-                  {isSaving ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Check className="h-4 w-4 mr-2" />
-                      Accept
-                    </>
-                  )}
-                </Button>
-              </>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowBoundingBoxes(!showBoundingBoxes)}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                {showBoundingBoxes ? 'Hide Boxes' : 'Show Boxes'}
+              </Button>
             )}
           </div>
         </div>
@@ -554,40 +531,18 @@ function RouteComponent() {
                   </div>
                 </div>
                 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-900 mb-2">Next Steps</h4>
-                  <p className="text-sm text-blue-800 mb-3">
-                    Review the detected elements in the image. The detection results show each element found with its confidence level.
+                {/* Painting Highlights Input */}
+                <div className="bg-muted rounded-lg p-4">
+                  <h4 className="font-medium mb-2">Painting Highlights</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Describe the key highlights or notable features of this painting:
                   </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={rejectDetection}
-                      className="flex-1"
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      Reject
-                    </Button>
-                    <Button
-                      onClick={acceptDetection}
-                      disabled={isSaving}
-                      size="sm"
-                      className="flex-1"
-                    >
-                      {isSaving ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Check className="h-4 w-4 mr-1" />
-                          Accept
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  <Textarea
+                    placeholder="Enter the highlights of this painting..."
+                    value={highlights}
+                    onChange={(e) => setHighlights(e.target.value)}
+                    className="min-h-[100px] resize-none"
+                  />
                 </div>
               </div>
             )}
