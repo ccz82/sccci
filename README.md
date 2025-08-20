@@ -62,6 +62,8 @@ A comprehensive digital media management and cultural preservation platform for 
 - **Intelligent Descriptions** - Generate contextual descriptions for artworks
 - **Element Analysis** - Identify cultural and artistic elements in paintings
 - **Story Generation** - Create engaging narratives about cultural heritage
+- **Text Translation** - Translate traditional Chinese extracted text fom OCR to formal English
+- **Text Summarisation** - Sumamrise OCR texts in meeting minute document
 
 ### User Experience
 - **Responsive Design** - Optimized for desktop and mobile devices
