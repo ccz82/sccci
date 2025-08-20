@@ -205,9 +205,7 @@ function RouteComponent() {
       formData.append('image', imageBlob, currentImage.filename);
 
       // Call the detection API with CORS proxy
-      const apiUrl = import.meta.env.DEV
-        ? 'https://painting2.rmbr.app/detect'  // Use Vite proxy in development
-        : 'https://corsproxy.io/?http://152.69.221.68:3001/detect';  // Use CORS proxy in production
+      const apiUrl = 'https://painting2.rmbr.app/detect'
 
       const response = await fetch(apiUrl, {
         method: 'POST',
