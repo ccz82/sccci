@@ -22,6 +22,7 @@ import { Route as authAuthSigninImport } from './routes/(auth)/_auth.signin'
 import { Route as appAppUserGuideImport } from './routes/(app)/_app.user-guide'
 import { Route as appAppPeopleImport } from './routes/(app)/_app.people'
 import { Route as appAppPaintingsImport } from './routes/(app)/_app.paintings'
+import { Route as appAppOcrProcessingImport } from './routes/(app)/_app.ocr-processing'
 import { Route as appAppOcrImport } from './routes/(app)/_app.ocr'
 import { Route as appAppMediaImport } from './routes/(app)/_app.media'
 import { Route as appAppDashboardImport } from './routes/(app)/_app.dashboard'
@@ -101,6 +102,12 @@ const appAppPeopleRoute = appAppPeopleImport.update({
 const appAppPaintingsRoute = appAppPaintingsImport.update({
   id: '/paintings',
   path: '/paintings',
+  getParentRoute: () => appAppRoute,
+} as any)
+
+const appAppOcrProcessingRoute = appAppOcrProcessingImport.update({
+  id: '/ocr-processing',
+  path: '/ocr-processing',
   getParentRoute: () => appAppRoute,
 } as any)
 
@@ -219,6 +226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAppOcrImport
       parentRoute: typeof appAppImport
     }
+    '/(app)/_app/ocr-processing': {
+      id: '/(app)/_app/ocr-processing'
+      path: '/ocr-processing'
+      fullPath: '/ocr-processing'
+      preLoaderRoute: typeof appAppOcrProcessingImport
+      parentRoute: typeof appAppImport
+    }
     '/(app)/_app/paintings': {
       id: '/(app)/_app/paintings'
       path: '/paintings'
@@ -298,6 +312,7 @@ interface appAppRouteChildren {
   appAppDashboardRoute: typeof appAppDashboardRoute
   appAppMediaRoute: typeof appAppMediaRoute
   appAppOcrRoute: typeof appAppOcrRoute
+  appAppOcrProcessingRoute: typeof appAppOcrProcessingRoute
   appAppPaintingsRoute: typeof appAppPaintingsRoute
   appAppPeopleRoute: typeof appAppPeopleRoute
   appAppUserGuideRoute: typeof appAppUserGuideRoute
@@ -307,6 +322,7 @@ const appAppRouteChildren: appAppRouteChildren = {
   appAppDashboardRoute: appAppDashboardRoute,
   appAppMediaRoute: appAppMediaRoute,
   appAppOcrRoute: appAppOcrRoute,
+  appAppOcrProcessingRoute: appAppOcrProcessingRoute,
   appAppPaintingsRoute: appAppPaintingsRoute,
   appAppPeopleRoute: appAppPeopleRoute,
   appAppUserGuideRoute: appAppUserGuideRoute,
@@ -385,6 +401,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof appAppDashboardRoute
   '/media': typeof appAppMediaRoute
   '/ocr': typeof appAppOcrRoute
+  '/ocr-processing': typeof appAppOcrProcessingRoute
   '/paintings': typeof appAppPaintingsRoute
   '/people': typeof appAppPeopleRoute
   '/user-guide': typeof appAppUserGuideRoute
@@ -401,6 +418,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof appAppDashboardRoute
   '/media': typeof appAppMediaRoute
   '/ocr': typeof appAppOcrRoute
+  '/ocr-processing': typeof appAppOcrProcessingRoute
   '/paintings': typeof appAppPaintingsRoute
   '/people': typeof appAppPeopleRoute
   '/user-guide': typeof appAppUserGuideRoute
@@ -423,6 +441,7 @@ export interface FileRoutesById {
   '/(app)/_app/dashboard': typeof appAppDashboardRoute
   '/(app)/_app/media': typeof appAppMediaRoute
   '/(app)/_app/ocr': typeof appAppOcrRoute
+  '/(app)/_app/ocr-processing': typeof appAppOcrProcessingRoute
   '/(app)/_app/paintings': typeof appAppPaintingsRoute
   '/(app)/_app/people': typeof appAppPeopleRoute
   '/(app)/_app/user-guide': typeof appAppUserGuideRoute
@@ -442,6 +461,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/media'
     | '/ocr'
+    | '/ocr-processing'
     | '/paintings'
     | '/people'
     | '/user-guide'
@@ -457,6 +477,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/media'
     | '/ocr'
+    | '/ocr-processing'
     | '/paintings'
     | '/people'
     | '/user-guide'
@@ -477,6 +498,7 @@ export interface FileRouteTypes {
     | '/(app)/_app/dashboard'
     | '/(app)/_app/media'
     | '/(app)/_app/ocr'
+    | '/(app)/_app/ocr-processing'
     | '/(app)/_app/paintings'
     | '/(app)/_app/people'
     | '/(app)/_app/user-guide'
@@ -530,6 +552,7 @@ export const routeTree = rootRoute
         "/(app)/_app/dashboard",
         "/(app)/_app/media",
         "/(app)/_app/ocr",
+        "/(app)/_app/ocr-processing",
         "/(app)/_app/paintings",
         "/(app)/_app/people",
         "/(app)/_app/user-guide"
@@ -576,6 +599,10 @@ export const routeTree = rootRoute
     },
     "/(app)/_app/ocr": {
       "filePath": "(app)/_app.ocr.tsx",
+      "parent": "/(app)/_app"
+    },
+    "/(app)/_app/ocr-processing": {
+      "filePath": "(app)/_app.ocr-processing.tsx",
       "parent": "/(app)/_app"
     },
     "/(app)/_app/paintings": {
