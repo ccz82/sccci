@@ -21,10 +21,14 @@ import { Route as authAuthSignupImport } from './routes/(auth)/_auth.signup'
 import { Route as authAuthSigninImport } from './routes/(auth)/_auth.signin'
 import { Route as appAppUserGuideImport } from './routes/(app)/_app.user-guide'
 import { Route as appAppPeopleImport } from './routes/(app)/_app.people'
+import { Route as appAppPaintingsElementDetectImport } from './routes/(app)/_app.paintings-element-detect'
+import { Route as appAppPaintingsAiDescImport } from './routes/(app)/_app.paintings-ai-desc'
 import { Route as appAppPaintingsImport } from './routes/(app)/_app.paintings'
 import { Route as appAppOcrImport } from './routes/(app)/_app.ocr'
 import { Route as appAppMediaImport } from './routes/(app)/_app.media'
 import { Route as appAppDashboardImport } from './routes/(app)/_app.dashboard'
+import { Route as appAppClassifyImport } from './routes/(app)/_app.classify'
+import { Route as appAppClassifierImport } from './routes/(app)/_app.classifier'
 import { Route as appAppCscImport } from './routes/(app)/_app.csc'
 import { Route as authAuthVerifyAccountIndexImport } from './routes/(auth)/_auth.verify-account.index'
 import { Route as authAuthForgotPasswordIndexImport } from './routes/(auth)/_auth.forgot-password.index'
@@ -99,6 +103,19 @@ const appAppPeopleRoute = appAppPeopleImport.update({
   getParentRoute: () => appAppRoute,
 } as any)
 
+const appAppPaintingsElementDetectRoute =
+  appAppPaintingsElementDetectImport.update({
+    id: '/paintings-element-detect',
+    path: '/paintings-element-detect',
+    getParentRoute: () => appAppRoute,
+  } as any)
+
+const appAppPaintingsAiDescRoute = appAppPaintingsAiDescImport.update({
+  id: '/paintings-ai-desc',
+  path: '/paintings-ai-desc',
+  getParentRoute: () => appAppRoute,
+} as any)
+
 const appAppPaintingsRoute = appAppPaintingsImport.update({
   id: '/paintings',
   path: '/paintings',
@@ -120,6 +137,18 @@ const appAppMediaRoute = appAppMediaImport.update({
 const appAppDashboardRoute = appAppDashboardImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => appAppRoute,
+} as any)
+
+const appAppClassifyRoute = appAppClassifyImport.update({
+  id: '/classify',
+  path: '/classify',
+  getParentRoute: () => appAppRoute,
+} as any)
+
+const appAppClassifierRoute = appAppClassifierImport.update({
+  id: '/classifier',
+  path: '/classifier',
   getParentRoute: () => appAppRoute,
 } as any)
 
@@ -205,6 +234,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof publicPublicImport
       parentRoute: typeof publicRoute
     }
+    '/(app)/_app/classifier': {
+      id: '/(app)/_app/classifier'
+      path: '/classifier'
+      fullPath: '/classifier'
+      preLoaderRoute: typeof appAppClassifierImport
+      parentRoute: typeof appAppImport
+    }
+    '/(app)/_app/classify': {
+      id: '/(app)/_app/classify'
+      path: '/classify'
+      fullPath: '/classify'
+      preLoaderRoute: typeof appAppClassifyImport
+      parentRoute: typeof appAppImport
+    }
     '/(app)/_app/csc': {
       id: '/(app)/_app/csc'
       path: '/csc'
@@ -238,6 +281,20 @@ declare module '@tanstack/react-router' {
       path: '/paintings'
       fullPath: '/paintings'
       preLoaderRoute: typeof appAppPaintingsImport
+      parentRoute: typeof appAppImport
+    }
+    '/(app)/_app/paintings-ai-desc': {
+      id: '/(app)/_app/paintings-ai-desc'
+      path: '/paintings-ai-desc'
+      fullPath: '/paintings-ai-desc'
+      preLoaderRoute: typeof appAppPaintingsAiDescImport
+      parentRoute: typeof appAppImport
+    }
+    '/(app)/_app/paintings-element-detect': {
+      id: '/(app)/_app/paintings-element-detect'
+      path: '/paintings-element-detect'
+      fullPath: '/paintings-element-detect'
+      preLoaderRoute: typeof appAppPaintingsElementDetectImport
       parentRoute: typeof appAppImport
     }
     '/(app)/_app/people': {
@@ -309,21 +366,29 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface appAppRouteChildren {
+  appAppClassifierRoute: typeof appAppClassifierRoute
+  appAppClassifyRoute: typeof appAppClassifyRoute
   appAppCscRoute: typeof appAppCscRoute
   appAppDashboardRoute: typeof appAppDashboardRoute
   appAppMediaRoute: typeof appAppMediaRoute
   appAppOcrRoute: typeof appAppOcrRoute
   appAppPaintingsRoute: typeof appAppPaintingsRoute
+  appAppPaintingsAiDescRoute: typeof appAppPaintingsAiDescRoute
+  appAppPaintingsElementDetectRoute: typeof appAppPaintingsElementDetectRoute
   appAppPeopleRoute: typeof appAppPeopleRoute
   appAppUserGuideRoute: typeof appAppUserGuideRoute
 }
 
 const appAppRouteChildren: appAppRouteChildren = {
+  appAppClassifierRoute: appAppClassifierRoute,
+  appAppClassifyRoute: appAppClassifyRoute,
   appAppCscRoute: appAppCscRoute,
   appAppDashboardRoute: appAppDashboardRoute,
   appAppMediaRoute: appAppMediaRoute,
   appAppOcrRoute: appAppOcrRoute,
   appAppPaintingsRoute: appAppPaintingsRoute,
+  appAppPaintingsAiDescRoute: appAppPaintingsAiDescRoute,
+  appAppPaintingsElementDetectRoute: appAppPaintingsElementDetectRoute,
   appAppPeopleRoute: appAppPeopleRoute,
   appAppUserGuideRoute: appAppUserGuideRoute,
 }
@@ -398,11 +463,15 @@ const publicRouteWithChildren =
 
 export interface FileRoutesByFullPath {
   '/': typeof publicPublicIndexRoute
+  '/classifier': typeof appAppClassifierRoute
+  '/classify': typeof appAppClassifyRoute
   '/csc': typeof appAppCscRoute
   '/dashboard': typeof appAppDashboardRoute
   '/media': typeof appAppMediaRoute
   '/ocr': typeof appAppOcrRoute
   '/paintings': typeof appAppPaintingsRoute
+  '/paintings-ai-desc': typeof appAppPaintingsAiDescRoute
+  '/paintings-element-detect': typeof appAppPaintingsElementDetectRoute
   '/people': typeof appAppPeopleRoute
   '/user-guide': typeof appAppUserGuideRoute
   '/signin': typeof authAuthSigninRoute
@@ -415,11 +484,15 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof publicPublicIndexRoute
+  '/classifier': typeof appAppClassifierRoute
+  '/classify': typeof appAppClassifyRoute
   '/csc': typeof appAppCscRoute
   '/dashboard': typeof appAppDashboardRoute
   '/media': typeof appAppMediaRoute
   '/ocr': typeof appAppOcrRoute
   '/paintings': typeof appAppPaintingsRoute
+  '/paintings-ai-desc': typeof appAppPaintingsAiDescRoute
+  '/paintings-element-detect': typeof appAppPaintingsElementDetectRoute
   '/people': typeof appAppPeopleRoute
   '/user-guide': typeof appAppUserGuideRoute
   '/signin': typeof authAuthSigninRoute
@@ -438,11 +511,15 @@ export interface FileRoutesById {
   '/(auth)/_auth': typeof authAuthRouteWithChildren
   '/(public)': typeof publicRouteWithChildren
   '/(public)/_public': typeof publicPublicRouteWithChildren
+  '/(app)/_app/classifier': typeof appAppClassifierRoute
+  '/(app)/_app/classify': typeof appAppClassifyRoute
   '/(app)/_app/csc': typeof appAppCscRoute
   '/(app)/_app/dashboard': typeof appAppDashboardRoute
   '/(app)/_app/media': typeof appAppMediaRoute
   '/(app)/_app/ocr': typeof appAppOcrRoute
   '/(app)/_app/paintings': typeof appAppPaintingsRoute
+  '/(app)/_app/paintings-ai-desc': typeof appAppPaintingsAiDescRoute
+  '/(app)/_app/paintings-element-detect': typeof appAppPaintingsElementDetectRoute
   '/(app)/_app/people': typeof appAppPeopleRoute
   '/(app)/_app/user-guide': typeof appAppUserGuideRoute
   '/(auth)/_auth/signin': typeof authAuthSigninRoute
@@ -458,11 +535,15 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/classifier'
+    | '/classify'
     | '/csc'
     | '/dashboard'
     | '/media'
     | '/ocr'
     | '/paintings'
+    | '/paintings-ai-desc'
+    | '/paintings-element-detect'
     | '/people'
     | '/user-guide'
     | '/signin'
@@ -474,11 +555,15 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/classifier'
+    | '/classify'
     | '/csc'
     | '/dashboard'
     | '/media'
     | '/ocr'
     | '/paintings'
+    | '/paintings-ai-desc'
+    | '/paintings-element-detect'
     | '/people'
     | '/user-guide'
     | '/signin'
@@ -495,11 +580,15 @@ export interface FileRouteTypes {
     | '/(auth)/_auth'
     | '/(public)'
     | '/(public)/_public'
+    | '/(app)/_app/classifier'
+    | '/(app)/_app/classify'
     | '/(app)/_app/csc'
     | '/(app)/_app/dashboard'
     | '/(app)/_app/media'
     | '/(app)/_app/ocr'
     | '/(app)/_app/paintings'
+    | '/(app)/_app/paintings-ai-desc'
+    | '/(app)/_app/paintings-element-detect'
     | '/(app)/_app/people'
     | '/(app)/_app/user-guide'
     | '/(auth)/_auth/signin'
@@ -549,11 +638,15 @@ export const routeTree = rootRoute
       "filePath": "(app)/_app.tsx",
       "parent": "/(app)",
       "children": [
+        "/(app)/_app/classifier",
+        "/(app)/_app/classify",
         "/(app)/_app/csc",
         "/(app)/_app/dashboard",
         "/(app)/_app/media",
         "/(app)/_app/ocr",
         "/(app)/_app/paintings",
+        "/(app)/_app/paintings-ai-desc",
+        "/(app)/_app/paintings-element-detect",
         "/(app)/_app/people",
         "/(app)/_app/user-guide"
       ]
@@ -589,6 +682,14 @@ export const routeTree = rootRoute
         "/(public)/_public/"
       ]
     },
+    "/(app)/_app/classifier": {
+      "filePath": "(app)/_app.classifier.tsx",
+      "parent": "/(app)/_app"
+    },
+    "/(app)/_app/classify": {
+      "filePath": "(app)/_app.classify.tsx",
+      "parent": "/(app)/_app"
+    },
     "/(app)/_app/csc": {
       "filePath": "(app)/_app.csc.tsx",
       "parent": "/(app)/_app"
@@ -607,6 +708,14 @@ export const routeTree = rootRoute
     },
     "/(app)/_app/paintings": {
       "filePath": "(app)/_app.paintings.tsx",
+      "parent": "/(app)/_app"
+    },
+    "/(app)/_app/paintings-ai-desc": {
+      "filePath": "(app)/_app.paintings-ai-desc.tsx",
+      "parent": "/(app)/_app"
+    },
+    "/(app)/_app/paintings-element-detect": {
+      "filePath": "(app)/_app.paintings-element-detect.tsx",
       "parent": "/(app)/_app"
     },
     "/(app)/_app/people": {

@@ -19,4 +19,13 @@ export default defineConfig({
       '~': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    proxy: {
+      '/api/detect': {
+        target: 'http://152.69.221.68:3001',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
 })
