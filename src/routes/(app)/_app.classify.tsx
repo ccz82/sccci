@@ -4,27 +4,38 @@ import { pb } from '~/lib/pb';
 import { Button } from '~/components/ui/button';
 import { Label } from '~/components/ui/label';
 import { Input } from '~/components/ui/input';
-import { ScrollArea } from '~/components/ui/scroll-area';
 
-// Mock AI classification and captioning
-async function mockClassifyAndCaption(fileUrl: string) {
-  await new Promise(res => setTimeout(res, 1000));
-  const label = Math.random() > 0.5 ? 'casual' : 'diplomatic';
-  const caption = label === 'casual'
-    ? 'A casual event with relaxed atmosphere.'
-    : 'A diplomatic event with formal setting.';
-  return { label, caption };
+import { ScrollArea } from '~/components/ui/scroll-area';
+import { GoogleGenAI } from '@google/genai';
+
+
+// Use Google GenAI to generate a caption for the image
+const genAI = new GoogleGenAI({ apiKey: import.meta.env.VITE_GENAI_API_KEY });
+
+async function generateCaption(imageUrl: string, label: 'casual' | 'diplomatic') {
+  const prompt = `Describe this image for a ${label} event.`;
+  try {
+    const result = await genAI.generateContent({
+      model: 'gemini-pro-vision',
+      contents: [
+        { role: 'user', parts: [
+          { text: prompt },
+          { inlineData: { mimeType: 'image/png', data: await fetch(imageUrl).then(r => r.arrayBuffer()).then(buf => btoa(String.fromCharCode(...new Uint8Array(buf)))) } }
+        ] }
+      ]
+    });
+    const caption = result.response.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    return caption || `A ${label} event.`;
+  } catch (e) {
+    return `A ${label} event.`;
+  }
 }
 
 export const Route = createFileRoute('/(app)/_app/classify')({
   component: ClassifyPage,
 });
 
-function getAnalysis(label: 'casual' | 'diplomatic') {
-  return label === 'casual'
-    ? 'A casual event with relaxed atmosphere.'
-    : 'A diplomatic event with formal setting.';
-}
+
 
 function ClassifyPage() {
   const [images, setImages] = useState<any[]>([]);
@@ -32,21 +43,28 @@ function ClassifyPage() {
   const [classifications, setClassifications] = useState<{ label: 'casual' | 'diplomatic', caption: string }[]>([]);
   const navigate = useNavigate();
 
+
   useEffect(() => {
     // Get uploaded images from localStorage (set after upload)
     const uploaded = JSON.parse(localStorage.getItem('uploadedImages') || '[]');
     setImages(uploaded);
-    setClassifications(uploaded.map(() => ({ label: 'diplomatic', caption: getAnalysis('diplomatic') })));
+    setClassifications(uploaded.map(() => ({ label: 'diplomatic', caption: '' })));
   }, []);
 
+
   const handleClassificationChange = (idx: number, label: 'casual' | 'diplomatic') => {
-    setClassifications(prev => prev.map((c, i) => i === idx ? { label, caption: getAnalysis(label) } : c));
+    setClassifications(prev => prev.map((c, i) => i === idx ? { ...c, label } : c));
   };
 
+  // Remove handleGenerateCaption, not needed
+
   const handleSave = async (idx: number) => {
-    // Save classification and caption to PocketBase for the image
+    // Save classification and generate caption for the image
     const image = images[idx];
-    const { label, caption } = classifications[idx];
+    const { label } = classifications[idx];
+    setClassifications(prev => prev.map((c, i) => i === idx ? { ...c, caption: 'Generating...' } : c));
+    const caption = await generateCaption(image.url, label);
+    setClassifications(prev => prev.map((c, i) => i === idx ? { ...c, caption } : c));
     if (image && image.id) {
       await pb.collection('media').update(image.id, {
         class: label,
