@@ -26,10 +26,10 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
-      '/api2': {
+      '/api/facial_recognition': {
         target: 'http://152.69.221.68:3000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api2/, ''),
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },
