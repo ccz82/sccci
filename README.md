@@ -43,13 +43,15 @@ A comprehensive digital media management and cultural preservation platform for 
 - **Event Classification** - Organize images by event types and categories
 - **Automated Tagging** - AI-assisted image categorization
 - **Custom Categories** - Create custom classification schemes
-- **Batch Classification** - Process multiple images simultaneously
+- **Image and Album Gallery Viewing and Management** - View and manage event related images and albums. 
 
 ### OCR & Document Processing (Francine)
 - **Optical Character Recognition** - Extract text from meeting minutes and documents
-- **Meeting Minutes Processing** - Convert scanned documents to searchable text
+- **Meeting Minutes Processing** - Convert scanned documents to digitised text
 - **Document Management** - Organize and manage processed documents
-- **Text Search** - Search within extracted document content
+- **Text Translation** - Translate traditional Chinese extracted text to formal English
+- **Text Summarisation** - Sumamrise texts in meeting minute document
+- **Image and Album Gallery Viewing and Management** - View and manage meeting minute related images and albums. 
 
 ### Cultural Story Creator (Chun Zhen)
 - **AI Story Generation** - Create cultural stories using Google Gemini AI
