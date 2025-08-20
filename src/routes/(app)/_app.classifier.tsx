@@ -15,11 +15,11 @@ import { Search, Grid, List, CheckSquare, Square, ImageIcon, FolderIcon, Trash2 
 
 export const Route = createFileRoute('/(app)/_app/classifier')({
   loader: async () => {
-    // Load the album named "Events"
+    // Load the album named "Event A"
     const eventAlbums = await pb.collection("albums").getFullList({
-      filter: 'name = "Events"'
+      filter: 'name = "Event A" || name = "Event B"'
     });
-    // Load individual media items from the Events album
+    // Load individual media items from the Event A album
     const allMedia = await pb.collection("media").getFullList();
     const eventMedia = allMedia.filter(media => {
       const album = eventAlbums.find(album => album.id === media.album);
