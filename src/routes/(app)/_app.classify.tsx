@@ -10,13 +10,13 @@ import { GoogleGenAI } from '@google/genai';
 
 
 // Use Google GenAI to generate a caption for the image
-const genAI = new GoogleGenAI({ apiKey: import.meta.env.VITE_GENAI_API_KEY });
+const genAI = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
 async function generateCaption(imageUrl: string, label: 'casual' | 'diplomatic') {
   const prompt = `Describe this image for a ${label} event.`;
   try {
-    const result = await genAI.generateContent({
-      model: 'gemini-pro-vision',
+    const result = await genAI.models.generateContent({
+      model: 'gemini-2.5-flash',
       contents: [
         { role: 'user', parts: [
           { text: prompt },
@@ -24,7 +24,7 @@ async function generateCaption(imageUrl: string, label: 'casual' | 'diplomatic')
         ] }
       ]
     });
-    const caption = result.response.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const caption = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
     return caption || `A ${label} event.`;
   } catch (e) {
     return `A ${label} event.`;
