@@ -94,6 +94,7 @@ function FaceRecognitionSession({ album, images, onCancel, onFinish }: {
   useEffect(() => {
     const loadPeople = async () => {
       try {
+        console.log(`${FACIAL_RECOGNITION_API_URL}/people`)
         const response = await fetch(`${FACIAL_RECOGNITION_API_URL}/people`);
         if (response.ok) {
           const data = await response.json();
