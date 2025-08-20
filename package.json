@@ -23,7 +23,7 @@
     "vite": "^6.0.3"
   },
   "dependencies": {
-    "@google/genai": "^1.14.0",
+    "@google/genai": "^1.15.0",
     "@hookform/resolvers": "^4.1.2",
     "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-dialog": "^1.1.15",
