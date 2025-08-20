@@ -6,18 +6,127 @@ import { cn } from '~/lib/utils'
 import { ArrowLeft, ChevronLeft, ChevronRight, Search, Check, X, RefreshCw } from 'lucide-react'
 import { useSelectedImages } from '~/contexts/selected-images-context'
 
-interface BoundingBox {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  class: string;
+// Component to display image with bounding boxes
+interface ImageWithBoundingBoxesProps {
+  imageUrl: string;
+  detections: Detection[];
+  filename: string;
+  showBoxes: boolean;
+}
+
+function ImageWithBoundingBoxes({ imageUrl, detections, filename, showBoxes }: ImageWithBoundingBoxesProps) {
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+  const [displayDimensions, setDisplayDimensions] = useState({ width: 0, height: 0 });
+
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.target as HTMLImageElement;
+    setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+    setDisplayDimensions({ width: img.clientWidth, height: img.clientHeight });
+  };
+
+  // Color map for different classes
+  const getClassColor = (className: string) => {
+    const colors: Record<string, string> = {
+      'mountain': '#3B82F6', // blue
+      'tree': '#10B981',     // green
+      'building': '#F59E0B', // amber
+      'people': '#EF4444',   // red
+      'animal': '#8B5CF6',   // purple
+    };
+    return colors[className] || '#6B7280'; // default gray
+  };
+
+  return (
+    <div className="relative inline-block">
+      <img
+        src={imageUrl}
+        alt={filename}
+        className="max-h-[80vh] max-w-full object-contain rounded-lg"
+        onLoad={handleImageLoad}
+      />
+      {showBoxes && detections && imageDimensions.width > 0 && (
+        <svg
+          className="absolute top-0 left-0 pointer-events-none"
+          width={displayDimensions.width}
+          height={displayDimensions.height}
+          style={{
+            width: displayDimensions.width,
+            height: displayDimensions.height,
+          }}
+        >
+          {detections.map((detection, index) => {
+            const [x1, y1, x2, y2] = detection.box;
+            
+            // Scale coordinates from original image to display size
+            const scaleX = displayDimensions.width / imageDimensions.width;
+            const scaleY = displayDimensions.height / imageDimensions.height;
+            
+            const scaledX = x1 * scaleX;
+            const scaledY = y1 * scaleY;
+            const scaledWidth = (x2 - x1) * scaleX;
+            const scaledHeight = (y2 - y1) * scaleY;
+            
+            const color = getClassColor(detection.class_name);
+            
+            return (
+              <g key={index}>
+                {/* Bounding box rectangle */}
+                <rect
+                  x={scaledX}
+                  y={scaledY}
+                  width={scaledWidth}
+                  height={scaledHeight}
+                  fill="none"
+                  stroke={color}
+                  strokeWidth="2"
+                  strokeOpacity="0.8"
+                />
+                {/* Label background */}
+                <rect
+                  x={scaledX}
+                  y={scaledY - 20}
+                  width={`${detection.class_name.length * 8 + 40}`}
+                  height="20"
+                  fill={color}
+                  fillOpacity="0.8"
+                />
+                {/* Label text */}
+                <text
+                  x={scaledX + 4}
+                  y={scaledY - 6}
+                  fill="white"
+                  fontSize="12"
+                  fontWeight="bold"
+                >
+                  {detection.class_name} {Math.round(detection.confidence * 100)}%
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      )}
+    </div>
+  );
+}
+
+interface Detection {
+  box: [number, number, number, number]; // [x1, y1, x2, y2]
+  class_id: number;
+  class_name: string;
   confidence: number;
 }
 
 interface DetectionResult {
-  bounding_boxes: BoundingBox[];
-  processed_image_base64: string;
+  class_distribution: {
+    animal: number;
+    building: number;
+    mountain: number;
+    people: number;
+    tree: number;
+  };
+  detection_count: number;
+  detections: Detection[];
+  status: string;
 }
 
 export const Route = createFileRoute('/(app)/_app/paintings-element-detect')({
@@ -41,8 +150,8 @@ function RouteComponent() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectionResult, setDetectionResult] = useState<DetectionResult | null>(null);
-  const [showOriginal, setShowOriginal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showBoundingBoxes, setShowBoundingBoxes] = useState(true);
 
   // Load media based on selected image IDs from context
   useEffect(() => {
@@ -93,8 +202,12 @@ function RouteComponent() {
       const formData = new FormData();
       formData.append('image', imageBlob, currentImage.filename);
       
-      // Call the detection API
-      const response = await fetch('http://152.69.221.68:3001/detect-visualize', {
+      // Call the detection API with CORS proxy
+      const apiUrl = import.meta.env.DEV 
+        ? '/api/detect'  // Use Vite proxy in development
+        : 'https://corsproxy.io/?http://152.69.221.68:3001/detect';  // Use CORS proxy in production
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         body: formData,
       });
@@ -105,6 +218,7 @@ function RouteComponent() {
       
       const result = await response.json();
       setDetectionResult(result);
+      setShowBoundingBoxes(true);
       
     } catch (error) {
       console.error('Error detecting elements:', error);
@@ -145,8 +259,9 @@ function RouteComponent() {
       
       const detectionData = {
         media: currentImage.id,
-        bounding_boxes: JSON.stringify(detectionResult.bounding_boxes),
-        processed_image: detectionResult.processed_image_base64,
+        detections: JSON.stringify(detectionResult.detections),
+        class_distribution: JSON.stringify(detectionResult.class_distribution),
+        detection_count: detectionResult.detection_count,
         status: 'accepted'
       };
       
@@ -162,7 +277,7 @@ function RouteComponent() {
       if (currentImageIndex < media.length - 1) {
         setCurrentImageIndex(currentImageIndex + 1);
         setDetectionResult(null);
-        setShowOriginal(false);
+        setShowBoundingBoxes(true);
       }
       
     } catch (error) {
@@ -174,14 +289,14 @@ function RouteComponent() {
 
   const rejectDetection = () => {
     setDetectionResult(null);
-    setShowOriginal(false);
+    setShowBoundingBoxes(true);
   };
 
   const nextImage = () => {
     if (currentImageIndex < media.length - 1) {
       setCurrentImageIndex(currentImageIndex + 1);
       setDetectionResult(null);
-      setShowOriginal(false);
+      setShowBoundingBoxes(true);
     }
   };
 
@@ -189,7 +304,7 @@ function RouteComponent() {
     if (currentImageIndex > 0) {
       setCurrentImageIndex(currentImageIndex - 1);
       setDetectionResult(null);
-      setShowOriginal(false);
+      setShowBoundingBoxes(true);
     }
   };
 
@@ -240,7 +355,7 @@ function RouteComponent() {
         <p className="text-muted-foreground">Detect and analyze elements in landscape paintings</p>
       </div>
 
-      <div className="max-w-6xl mx-auto w-full">
+      <div className="max-w-[95vw] mx-auto w-full">
         {/* Image Navigation */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
@@ -291,10 +406,10 @@ function RouteComponent() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowOriginal(!showOriginal)}
+                  onClick={() => setShowBoundingBoxes(!showBoundingBoxes)}
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  {showOriginal ? 'Show Detections' : 'Show Original'}
+                  {showBoundingBoxes ? 'Hide Boxes' : 'Show Boxes'}
                 </Button>
                 <Button
                   variant="destructive"
@@ -331,19 +446,12 @@ function RouteComponent() {
           {/* Image Display */}
           <div className="lg:col-span-2 flex flex-col gap-4">
             <div className="flex justify-center bg-muted rounded-lg p-4">
-              {detectionResult && !showOriginal ? (
-                <img
-                  src={`data:image/jpeg;base64,${detectionResult.processed_image_base64}`}
-                  alt={`${currentImage.filename} with detections`}
-                  className="max-h-[600px] object-contain rounded-lg"
-                />
-              ) : (
-                <img
-                  src={pb.files.getURL(currentImage, currentImage.image)}
-                  alt={currentImage.filename}
-                  className="max-h-[600px] object-contain rounded-lg"
-                />
-              )}
+              <ImageWithBoundingBoxes
+                imageUrl={pb.files.getURL(currentImage, currentImage.image)}
+                detections={detectionResult?.detections || []}
+                filename={currentImage.filename}
+                showBoxes={showBoundingBoxes && !!detectionResult}
+              />
             </div>
             
             {/* Image Info */}
@@ -356,8 +464,39 @@ function RouteComponent() {
               )}
               {detectionResult && (
                 <p className="text-sm text-green-600">
-                  {detectionResult.bounding_boxes.length} element{detectionResult.bounding_boxes.length !== 1 ? 's' : ''} detected
+                  {detectionResult.detection_count} element{detectionResult.detection_count !== 1 ? 's' : ''} detected
                 </p>
+              )}
+              
+              {/* Color Legend */}
+              {detectionResult && showBoundingBoxes && (
+                <div className="bg-white/90 rounded-lg p-3 inline-block">
+                  <h4 className="text-xs font-semibold mb-2 text-gray-700">Detection Colors:</h4>
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    {Object.entries(detectionResult.class_distribution).map(([className, count]) => (
+                      count > 0 && (
+                        <div key={className} className="flex items-center gap-1">
+                          <div 
+                            className="w-3 h-3 rounded border"
+                            style={{
+                              backgroundColor: (() => {
+                                const colors: Record<string, string> = {
+                                  'mountain': '#3B82F6',
+                                  'tree': '#10B981',
+                                  'building': '#F59E0B',
+                                  'people': '#EF4444',
+                                  'animal': '#8B5CF6',
+                                };
+                                return colors[className] || '#6B7280';
+                              })()
+                            }}
+                          />
+                          <span className="capitalize text-gray-700">{className}</span>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -385,14 +524,14 @@ function RouteComponent() {
                 <div className="bg-muted rounded-lg p-4">
                   <h4 className="font-medium mb-2">Detected Elements</h4>
                   <div className="space-y-2">
-                    {detectionResult.bounding_boxes.length === 0 ? (
+                    {detectionResult.detections.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No elements detected in this image.</p>
                     ) : (
-                      detectionResult.bounding_boxes.map((box, index) => (
+                      detectionResult.detections.map((detection, index) => (
                         <div key={index} className="flex justify-between items-center text-sm">
-                          <span className="capitalize">{box.class}</span>
+                          <span className="capitalize">{detection.class_name}</span>
                           <span className="text-muted-foreground">
-                            {(box.confidence * 100).toFixed(1)}%
+                            {(detection.confidence * 100).toFixed(1)}%
                           </span>
                         </div>
                       ))
@@ -400,10 +539,25 @@ function RouteComponent() {
                   </div>
                 </div>
                 
+                {/* Class Distribution */}
+                <div className="bg-muted rounded-lg p-4">
+                  <h4 className="font-medium mb-2">Element Summary</h4>
+                  <div className="space-y-2">
+                    {Object.entries(detectionResult.class_distribution).map(([className, count]) => (
+                      count > 0 && (
+                        <div key={className} className="flex justify-between items-center text-sm">
+                          <span className="capitalize">{className}</span>
+                          <span className="text-muted-foreground">{count}</span>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                </div>
+                
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h4 className="font-medium text-blue-900 mb-2">Next Steps</h4>
                   <p className="text-sm text-blue-800 mb-3">
-                    Review the detected elements in the image. You can toggle between the original and annotated versions.
+                    Review the detected elements in the image. The detection results show each element found with its confidence level.
                   </p>
                   <div className="flex gap-2">
                     <Button

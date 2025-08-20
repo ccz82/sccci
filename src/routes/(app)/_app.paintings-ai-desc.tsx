@@ -8,6 +8,7 @@ import { cn } from '~/lib/utils'
 import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles, Save } from 'lucide-react'
 import { GoogleGenAI } from "@google/genai"
 import { useSelectedImages } from '~/contexts/selected-images-context'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/(app)/_app/paintings-ai-desc')({
   loader: async () => {
@@ -34,6 +35,12 @@ function RouteComponent() {
   const [year, setYear] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<{
+    artist?: string;
+    year?: string;
+    description?: string;
+    general?: string;
+  }>({});
 
   // Load media and paintings based on selected image IDs from context
   useEffect(() => {
@@ -57,17 +64,24 @@ function RouteComponent() {
         // Load or create painting records for each media item
         const paintingPromises = selectedImageIds.map(async (mediaId: string) => {
           try {
-            // Try to find existing painting record
+            // Get the media item to access its image field
+            const mediaItem = mediaItems.find(m => m.id === mediaId);
+            if (!mediaItem) {
+              console.error(`Media item not found for ID: ${mediaId}`);
+              return null;
+            }
+            
+            // Try to find existing painting record using the media ID
             const existingPaintings = await pb.collection("paintings").getList(1, 1, {
-              filter: `media = "${mediaId}"`
+              filter: `image="${mediaItem.id}"`
             });
             
             if (existingPaintings.items.length > 0) {
               return existingPaintings.items[0];
             } else {
-              // Create new painting record
+              // Create new painting record with the media ID
               const newPainting = await pb.collection("paintings").create({
-                media: mediaId,
+                image: mediaItem.id,
                 description: "",
                 artist: "",
                 year: ""
@@ -102,8 +116,54 @@ function RouteComponent() {
       setDescription(painting.description || "");
       setArtist(painting.artist || "");
       setYear(painting.year || "");
+      // Clear validation errors when switching images
+      setValidationErrors({});
     }
   }, [currentImageIndex, paintings]);
+
+  const validateFields = () => {
+    const errors: {
+      artist?: string;
+      year?: string;
+      description?: string;
+      general?: string;
+    } = {};
+
+    // Artist validation
+    if (artist.trim()) {
+      if (artist.trim().length < 2) {
+        errors.artist = "Artist name must be at least 2 characters long";
+      } else if (artist.trim().length > 100) {
+        errors.artist = "Artist name must be less than 100 characters";
+      }
+    }
+
+    // Year validation - now supports text format for art historical data
+    if (year.trim()) {
+      // Allow flexible year formats like "1834", "c. 1820", "Ming Dynasty", etc.
+      // Only validate if it looks like a pure number
+      const yearNum = parseInt(year.trim());
+      const currentYear = new Date().getFullYear();
+      
+      if (!isNaN(yearNum)) {
+        // If it's a number, validate the range
+        if (yearNum < 100 || yearNum > currentYear) {
+          errors.year = `Year must be between 100 and ${currentYear}`;
+        }
+      }
+      // If it's not a number (like "Ming Dynasty"), allow it without validation
+    }
+
+    // Description validation - no length limits
+    // Removed all length restrictions for maximum flexibility
+
+    // At least one field should have content
+    if (!description.trim() && !artist.trim() && !year.trim()) {
+      errors.general = "Please fill in at least one field before saving";
+    }
+
+    return errors;
+  };
 
   const generateDescription = async () => {
     if (!media[currentImageIndex]) return;
@@ -112,29 +172,99 @@ function RouteComponent() {
     try {
       const currentImage = media[currentImageIndex];
       
-      // For development, we'll use a direct API call
-      // In production, this should be moved to a backend API
-      const apiKey = process.env.GEMINI_API_KEY;
+      // GoogleGenAI library usage - check if API key is available in environment
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
       
       if (!apiKey) {
-        // Fallback description when no API key is available
-        setDescription(`This is a traditional Chinese painting titled "${currentImage.filename}". The artwork demonstrates classical Chinese artistic techniques with careful attention to composition, brushwork, and cultural symbolism. The piece reflects the rich heritage of Chinese visual arts and showcases the artist's mastery of traditional painting methods.`);
-        return;
+        throw new Error("No API key available");
       }
-
+      
       const ai = new GoogleGenAI({ apiKey });
       
-      const result = await ai.models.generateContent({
-        model: "gemini-1.5-flash",
-        contents: `Analyze this traditional Chinese painting and provide a detailed description focusing on the artistic elements, style, composition, and cultural significance. Write in a scholarly yet accessible tone. The painting filename is: ${currentImage.filename}`,
-      });
+      // Get the image URL from PocketBase
+      const imageUrl = pb.files.getURL(currentImage, currentImage.image);
+      
+      // Fetch the image as a blob
+      const imageResponse = await fetch(imageUrl);
+      if (!imageResponse.ok) {
+        throw new Error(`Failed to fetch image: ${imageResponse.statusText}`);
+      }
+      
+      const imageBlob = await imageResponse.blob();
+      const imageArrayBuffer = await imageBlob.arrayBuffer();
+      const imageBase64 = btoa(
+        new Uint8Array(imageArrayBuffer).reduce(
+          (data, byte) => data + String.fromCharCode(byte),
+          ''
+        )
+      );
+      
+      // Determine the MIME type
+      const mimeType = imageBlob.type || 'image/jpeg';
+      
+      // Create the multimodal content
+      const contents = [
+        {
+          role: 'user',
+          parts: [
+            {
+              text: `Analyze this traditional Chinese painting and provide a detailed description in one or more paragraphs that is both scholarly and accessible to the public. Do not use any markdown formatting such as asterisks, bullet points, or headings in the description. 
+              Focus on the following aspects:
 
-      const text = result.text || "";
-      setDescription(text);
+1. Visual composition and layout: describe the arrangement of elements and the balance between foreground, middle ground, and background.
+2. Artistic techniques and brushwork: explain the style of strokes, line quality, and any notable painting methods used.
+3. Color palette and use of space: highlight the choice of colors, tonal contrasts, and the use of negative space.
+4. Cultural and historical context: situate the painting within the traditions of Chinese art, noting period or school influences.
+5. Symbolic elements: identify and interpret any symbolic motifs such as animals, mountains, rivers, or buildings.
+6. Overall artistic style and period characteristics: explain how the painting reflects broader stylistic trends of its time.
+
+Ensure the description is factually accurate, clear for general readers, and insightful for art experts.
+
+          
+The name of the painting is: ${currentImage.filename}`
+            },
+            {
+              inlineData: {
+                data: imageBase64,
+                mimeType: mimeType
+              }
+            }
+          ]
+        }
+      ];
+      
+      const result = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: contents
+      });
+      
+      const text = result.text;
+      
+      if (text) {
+        setDescription(text);
+        toast.success("AI description generated successfully!");
+      } else {
+        throw new Error("No text response received from AI");
+      }
+      
     } catch (error) {
       console.error('Error generating description:', error);
-      // Fallback description
-      setDescription(`This is a traditional Chinese painting titled "${media[currentImageIndex].filename}". The artwork demonstrates classical Chinese artistic techniques with careful attention to composition, brushwork, and cultural symbolism. The piece reflects the rich heritage of Chinese visual arts and showcases the artist's mastery of traditional painting methods.`);
+      
+      // Enhanced fallback description based on filename
+      const currentImage = media[currentImageIndex];
+      const fallbackDescription = `This is a traditional Chinese painting titled "${currentImage.filename}". The artwork demonstrates classical Chinese artistic techniques with careful attention to composition, brushwork, and cultural symbolism. The piece reflects the rich heritage of Chinese visual arts and showcases the artist's mastery of traditional painting methods.
+
+The composition likely follows traditional Chinese painting principles, with careful balance between painted elements and empty space (known as "liu bai"). The brushwork would typically demonstrate the characteristic Chinese painting techniques, whether in the detailed "gongbi" style or the more expressive "xieyi" approach.
+
+This painting represents an important piece of Chinese cultural heritage, embodying centuries of artistic tradition and philosophical understanding of the relationship between humanity and nature.`;
+      
+      setDescription(fallbackDescription);
+      
+      if (error instanceof Error && error.message.includes("No API key")) {
+        toast.error("AI service not configured. Using fallback description.");
+      } else {
+        toast.error("Failed to generate AI description. Using fallback description.");
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -143,8 +273,15 @@ function RouteComponent() {
   const saveDescription = async () => {
     if (!paintings[currentImageIndex]) return;
     
-    // At least one field should have content
-    if (!description.trim() && !artist.trim() && !year.trim()) return;
+    // Clear previous validation errors
+    setValidationErrors({});
+    
+    // Validate fields
+    const errors = validateFields();
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
     
     setIsSaving(true);
     try {
@@ -160,8 +297,15 @@ function RouteComponent() {
       updatedPaintings[currentImageIndex] = updatedPainting;
       setPaintings(updatedPaintings);
       
+      // Show success toast
+      toast.success("Painting information saved successfully!");
+      
     } catch (error) {
       console.error('Error saving painting data:', error);
+      setValidationErrors({
+        general: 'Failed to save painting information. Please try again.'
+      });
+      toast.error("Failed to save painting information. Please try again.");
     } finally {
       setIsSaving(false);
     }
