@@ -40,7 +40,7 @@ import {
   SelectValue,
 } from "~/components/ui/select"
 
-const FACIAL_RECOGNITION_API_URL = "/api";
+const FACIAL_RECOGNITION_API_URL = "/api2";
 
 interface DetectedFace {
   x: number;
