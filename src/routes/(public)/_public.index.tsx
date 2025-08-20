@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import {
   Card,
   CardContent,
@@ -9,6 +9,9 @@ import {
 } from '~/components/ui/card'
 
 export const Route = createFileRoute('/(public)/_public/')({
+  beforeLoad: () => {
+    throw redirect ({to: '/signin'})
+  },
   component: Home,
 })
 
