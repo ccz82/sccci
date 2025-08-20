@@ -180,6 +180,116 @@ function FaceRecognitionSession({ album, images, onCancel, onFinish }: {
     runDetection();
   }, [currentImageIndex, currentImage]);
 
+  const handleAddNewPerson = async () => {
+    if (!newPersonName.trim() || !currentFace) return;
+
+    try {
+      // Create new person in PocketBase first
+      console.log(`Creating new person in PocketBase: ${newPersonName.trim()}`);
+      const newPbPerson = await pb.collection("people").create({
+        name: newPersonName.trim()
+      });
+      console.log("Created PocketBase person:", newPbPerson);
+
+      // Register face in the facial recognition system
+      const bstr = atob(currentFace.face_base64);
+      const arr = new Uint8Array(bstr.length);
+      for (let j = 0; j < bstr.length; j++) arr[j] = bstr.charCodeAt(j);
+      const blob = new Blob([arr], { type: "image/jpeg" });
+
+      const registerForm = new FormData();
+      registerForm.append("image", blob, `${newPersonName.trim()}.jpg`);
+      registerForm.append("name", newPersonName.trim());
+      registerForm.append("pocketbase_id", newPbPerson.id);
+
+      console.log(`Registering face in facial recognition API for: ${newPersonName.trim()}`);
+      const registerResp = await fetch(`${FACIAL_RECOGNITION_API_URL}/register`, {
+        method: "POST",
+        body: registerForm
+      });
+
+      if (!registerResp.ok) {
+        throw new Error("Failed to register face in backend");
+      }
+
+      const registerData = await registerResp.json();
+      console.log("Facial recognition API response:", registerData);
+
+      // Update face status
+      const updatedFaces = [...faces];
+      updatedFaces[currentFaceIndex] = {
+        ...currentFace,
+        approvedPerson: newPersonName.trim(),
+        status: 'new'
+      };
+      setFaces(updatedFaces);
+
+      // Add to local people list with the correct PocketBase ID
+      const newPerson: Person = {
+        id: registerData.person_id, // This is the facial recognition API ID
+        name: newPersonName.trim(),
+        pocketbase_id: newPbPerson.id, // This is the PocketBase ID
+        face_count: 1,
+        created_at: new Date().toISOString()
+      };
+
+      console.log("Adding to local people list:", newPerson);
+      setPeople([...people, newPerson]);
+      setNewPersonName('');
+
+      toast.success(`Added new person: ${newPersonName.trim()}`);
+      moveToNextFace();
+    } catch (err) {
+      console.error("Error in handleAddNewPerson:", err);
+      toast.error("Failed to add new person");
+    }
+  };
+
+  const handleApproveMatch = () => {
+    if (!currentFace?.suggestion?.name) return;
+
+    const matchedPerson = people.find(p => p.name === currentFace.suggestion?.name);
+
+    const updatedFaces = [...faces];
+    updatedFaces[currentFaceIndex] = {
+      ...currentFace,
+      approvedPerson: currentFace.suggestion.name,
+      approvedPersonId: matchedPerson?.pocketbase_id || null, // <-- assign PB ID
+      status: 'approved'
+    };
+    setFaces(updatedFaces);
+
+    toast.success(`Approved match: ${currentFace.suggestion.name}`);
+    moveToNextFace();
+  };
+
+  const handleEditMatch = async () => {
+    if (!editPersonName.trim() || !currentFace) return;
+
+    try {
+      let selectedPerson = people.find(p => p.name === editPersonName.trim());
+      if (!selectedPerson) {
+        toast.error("Person not found");
+        return;
+      }
+
+      const updatedFaces = [...faces];
+      updatedFaces[currentFaceIndex] = {
+        ...currentFace,
+        approvedPerson: editPersonName.trim(),
+        approvedPersonId: selectedPerson?.pocketbase_id || null,  // ✅ must exist
+        status: 'edited'
+      };
+      setFaces(updatedFaces);
+      setEditPersonName('');
+
+      toast.success(`Updated to: ${editPersonName.trim()}`);
+      moveToNextFace();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update match");
+    }
+  };
   const moveToNextFace = () => {
     if (currentFaceIndex + 1 < faces.length) {
       setCurrentFaceIndex(currentFaceIndex + 1);
@@ -189,108 +299,50 @@ function FaceRecognitionSession({ album, images, onCancel, onFinish }: {
     }
   };
 
-  const handleApproveMatch = async () => {
-    if (!currentFace || !currentFace.suggestion?.person_id) return;
-    const personId = currentFace.suggestion.person_id;
-
-    setFaces(prev =>
-      prev.map((f, i) =>
-        i === currentFaceIndex
-          ? {
-              ...f,
-              approvedPerson: currentFace.suggestion?.name || "Unknown",
-              approvedPersonId: personId,
-              status: "approved",
-            }
-          : f
-      )
-    );
-
-    moveToNextFace();
-  };
-
-  const handleAddNewPerson = async () => {
-    if (!newPersonName.trim() || !currentFace) return;
-    try {
-      // 1. Create person in PocketBase
-      const newPerson = await pb.collection("people").create({
-        name: newPersonName.trim(),
-      });
-
-      // 2. Update local state
-      setFaces(prev =>
-        prev.map((f, i) =>
-          i === currentFaceIndex
-            ? {
-                ...f,
-                approvedPerson: newPerson.name,
-                approvedPersonId: newPerson.id,
-                status: "new",
-              }
-            : f
-        )
-      );
-
-      // 3. Update people list
-      setPeople(prev => [...prev, { ...newPerson, face_count: 0, created_at: new Date().toISOString() }]);
-
-      setNewPersonName("");
-      moveToNextFace();
-    } catch (err) {
-      console.error("Failed to add new person:", err);
-      toast.error("Failed to add new person");
-    }
-  };
-
-  const handleEditMatch = async () => {
-    if (!editPersonName.trim() || !currentFace) return;
-    const person = people.find(p => p.name === editPersonName);
-    if (!person) return;
-
-    setFaces(prev =>
-      prev.map((f, i) =>
-        i === currentFaceIndex
-          ? {
-              ...f,
-              approvedPerson: person.name,
-              approvedPersonId: person.id,
-              status: "edited",
-            }
-          : f
-      )
-    );
-
-    setEditPersonName("");
-    moveToNextFace();
-  };
-
   const saveImageResults = async () => {
-    if (!currentImage) return;
     setSaving(true);
-
     try {
-      // collect all approved person IDs for this image
-      const approvedIds = faces
-        .filter(f => f.approvedPersonId)
-        .map(f => f.approvedPersonId as string);
+      const facesData = faces.map(face => ({
+        face_base64: face.face_base64,
+        approved_person: face.approvedPerson,
+        approved_person_id: face.approvedPersonId,
+        status: face.status,
+        x: face.x,
+        y: face.y,
+        w: face.w,
+        h: face.h,
+        confidence: face.confidence
+      }));
 
-      // update media record in PocketBase
-      await pb.collection("media").update(currentImage.id, {
-        people: approvedIds,
-        facesProcessed: true,
+      const result = await fetch(`${FACIAL_RECOGNITION_API_URL}/media/${currentImage.id}/process`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ faces: facesData })
       });
 
-      toast.success("Results saved!");
+      console.log(result)
 
-      // move to next image
+      const unique_people_ids = [...new Set(
+        faces
+          .map(face => face.approvedPersonId)
+          .filter((id): id is string => !!id)
+      )];
+
+      console.log(unique_people_ids)
+
+      await pb.collection("media").update(currentImage.id, {
+        facesProcessed: true,
+        people: unique_people_ids,  // ✅ should now contain PB IDs
+      });
+
       if (currentImageIndex + 1 < images.length) {
         setCurrentImageIndex(currentImageIndex + 1);
       } else {
         onFinish();
       }
     } catch (err) {
-      console.error("Failed to save image results:", err);
-      toast.error("Failed to save image results");
+      console.error("An error occurred during the save process:", err);
+      toast.error("Failed to save results. Please try again.");
     } finally {
       setSaving(false);
     }

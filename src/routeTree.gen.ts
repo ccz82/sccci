@@ -27,9 +27,9 @@ import { Route as appAppPaintingsImport } from './routes/(app)/_app.paintings'
 import { Route as appAppOcrImport } from './routes/(app)/_app.ocr'
 import { Route as appAppMediaImport } from './routes/(app)/_app.media'
 import { Route as appAppDashboardImport } from './routes/(app)/_app.dashboard'
+import { Route as appAppCscImport } from './routes/(app)/_app.csc'
 import { Route as appAppClassifyImport } from './routes/(app)/_app.classify'
 import { Route as appAppClassifierImport } from './routes/(app)/_app.classifier'
-import { Route as appAppCscImport } from './routes/(app)/_app.csc'
 import { Route as authAuthVerifyAccountIndexImport } from './routes/(auth)/_auth.verify-account.index'
 import { Route as authAuthForgotPasswordIndexImport } from './routes/(auth)/_auth.forgot-password.index'
 import { Route as authAuthVerifyAccountTokenImport } from './routes/(auth)/_auth.verify-account.$token'
@@ -140,6 +140,12 @@ const appAppDashboardRoute = appAppDashboardImport.update({
   getParentRoute: () => appAppRoute,
 } as any)
 
+const appAppCscRoute = appAppCscImport.update({
+  id: '/csc',
+  path: '/csc',
+  getParentRoute: () => appAppRoute,
+} as any)
+
 const appAppClassifyRoute = appAppClassifyImport.update({
   id: '/classify',
   path: '/classify',
@@ -149,12 +155,6 @@ const appAppClassifyRoute = appAppClassifyImport.update({
 const appAppClassifierRoute = appAppClassifierImport.update({
   id: '/classifier',
   path: '/classifier',
-  getParentRoute: () => appAppRoute,
-} as any)
-
-const appAppCscRoute = appAppCscImport.update({
-  id: '/csc',
-  path: '/csc',
   getParentRoute: () => appAppRoute,
 } as any)
 
