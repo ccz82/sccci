@@ -1,7 +1,7 @@
 import ModeToggle from './mode-toggle'
 import { ProfileDialog } from './profile-dialog'
 import { Link, LinkProps } from '@tanstack/react-router'
-import { BookImage, BookOpenText, Cat, LayoutDashboard, LucideIcon, ScanFace, Palette } from 'lucide-react'
+import { BookImage, BookOpenText, Cat, LayoutDashboard, LucideIcon, ScanFace, Palette, Star } from 'lucide-react'
 import { useEffect } from 'react'
 import {
   Sidebar,
@@ -15,6 +15,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '~/components/ui/sidebar'
+import { useTheme } from './theme-provider'
 
 interface SidebarNavItem extends LinkProps {
   name: string
@@ -27,11 +28,13 @@ const sidebarNavItems: SidebarNavItem[] = [
   { name: 'People', icon: ScanFace, to: '/people' },
   { name: 'OCR', icon: BookOpenText, to: '/ocr' },
   { name: 'Paintings', icon: Palette, to: '/paintings' },
+  { name: 'Cultural Story Creator', icon: Star, to: '/csc' },
   { name: 'User Guide', icon: BookOpenText, to: '/user-guide' },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { open, setOpen } = useSidebar()
+  const { theme } = useTheme() // get current theme
 
   useEffect(() => {
     if (!props.children && open) {
@@ -44,10 +47,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       collapsible="none"
     >
       <SidebarContent>
-        {/* don't show for now, dark mode makes text in logo impossible to see. */}
-        {/* <SidebarHeader className='m-3'> */}
-        {/*   <img src="/logo.png" /> */}
-        {/* </SidebarHeader> */}
+        <SidebarHeader className='m-3'>
+          <img
+            src={theme === 'dark' ? '/logo-dark.png' : '/logo-light.png'}
+            alt="Logo"
+          />
+        </SidebarHeader>
         <SidebarGroup>
           <SidebarGroupContent className="px-1.5 md:px-0">
             <SidebarMenu>

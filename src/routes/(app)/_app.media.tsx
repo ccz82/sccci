@@ -159,7 +159,7 @@ export default function MediaView({ albums, media }: { albums: any[], media: any
                     <SelectContent>
                       <SelectItem value="general">General</SelectItem>
                       <SelectItem value="painting">Painting</SelectItem>
-                      <SelectItem value="meeting">Meeting Minute</SelectItem>
+                      <SelectItem value="minute">Meeting Minute</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -524,7 +524,7 @@ export default function MediaView({ albums, media }: { albums: any[], media: any
               <SelectContent>
                 <SelectItem value="general">General</SelectItem>
                 <SelectItem value="painting">Painting</SelectItem>
-                <SelectItem value="meeting">Meeting Minute</SelectItem>
+                <SelectItem value="minute">Meeting Minute</SelectItem>
               </SelectContent>
             </Select>
           </div>

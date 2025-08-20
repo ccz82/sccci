@@ -25,6 +25,7 @@ import { Route as appAppPaintingsImport } from './routes/(app)/_app.paintings'
 import { Route as appAppOcrImport } from './routes/(app)/_app.ocr'
 import { Route as appAppMediaImport } from './routes/(app)/_app.media'
 import { Route as appAppDashboardImport } from './routes/(app)/_app.dashboard'
+import { Route as appAppCscImport } from './routes/(app)/_app.csc'
 import { Route as authAuthVerifyAccountIndexImport } from './routes/(auth)/_auth.verify-account.index'
 import { Route as authAuthForgotPasswordIndexImport } from './routes/(auth)/_auth.forgot-password.index'
 import { Route as authAuthVerifyAccountTokenImport } from './routes/(auth)/_auth.verify-account.$token'
@@ -122,6 +123,12 @@ const appAppDashboardRoute = appAppDashboardImport.update({
   getParentRoute: () => appAppRoute,
 } as any)
 
+const appAppCscRoute = appAppCscImport.update({
+  id: '/csc',
+  path: '/csc',
+  getParentRoute: () => appAppRoute,
+} as any)
+
 const authAuthVerifyAccountIndexRoute = authAuthVerifyAccountIndexImport.update(
   {
     id: '/verify-account/',
@@ -197,6 +204,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof publicPublicImport
       parentRoute: typeof publicRoute
+    }
+    '/(app)/_app/csc': {
+      id: '/(app)/_app/csc'
+      path: '/csc'
+      fullPath: '/csc'
+      preLoaderRoute: typeof appAppCscImport
+      parentRoute: typeof appAppImport
     }
     '/(app)/_app/dashboard': {
       id: '/(app)/_app/dashboard'
@@ -295,6 +309,7 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface appAppRouteChildren {
+  appAppCscRoute: typeof appAppCscRoute
   appAppDashboardRoute: typeof appAppDashboardRoute
   appAppMediaRoute: typeof appAppMediaRoute
   appAppOcrRoute: typeof appAppOcrRoute
@@ -304,6 +319,7 @@ interface appAppRouteChildren {
 }
 
 const appAppRouteChildren: appAppRouteChildren = {
+  appAppCscRoute: appAppCscRoute,
   appAppDashboardRoute: appAppDashboardRoute,
   appAppMediaRoute: appAppMediaRoute,
   appAppOcrRoute: appAppOcrRoute,
@@ -382,6 +398,7 @@ const publicRouteWithChildren =
 
 export interface FileRoutesByFullPath {
   '/': typeof publicPublicIndexRoute
+  '/csc': typeof appAppCscRoute
   '/dashboard': typeof appAppDashboardRoute
   '/media': typeof appAppMediaRoute
   '/ocr': typeof appAppOcrRoute
@@ -398,6 +415,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof publicPublicIndexRoute
+  '/csc': typeof appAppCscRoute
   '/dashboard': typeof appAppDashboardRoute
   '/media': typeof appAppMediaRoute
   '/ocr': typeof appAppOcrRoute
@@ -420,6 +438,7 @@ export interface FileRoutesById {
   '/(auth)/_auth': typeof authAuthRouteWithChildren
   '/(public)': typeof publicRouteWithChildren
   '/(public)/_public': typeof publicPublicRouteWithChildren
+  '/(app)/_app/csc': typeof appAppCscRoute
   '/(app)/_app/dashboard': typeof appAppDashboardRoute
   '/(app)/_app/media': typeof appAppMediaRoute
   '/(app)/_app/ocr': typeof appAppOcrRoute
@@ -439,6 +458,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/csc'
     | '/dashboard'
     | '/media'
     | '/ocr'
@@ -454,6 +474,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/csc'
     | '/dashboard'
     | '/media'
     | '/ocr'
@@ -474,6 +495,7 @@ export interface FileRouteTypes {
     | '/(auth)/_auth'
     | '/(public)'
     | '/(public)/_public'
+    | '/(app)/_app/csc'
     | '/(app)/_app/dashboard'
     | '/(app)/_app/media'
     | '/(app)/_app/ocr'
@@ -527,6 +549,7 @@ export const routeTree = rootRoute
       "filePath": "(app)/_app.tsx",
       "parent": "/(app)",
       "children": [
+        "/(app)/_app/csc",
         "/(app)/_app/dashboard",
         "/(app)/_app/media",
         "/(app)/_app/ocr",
@@ -565,6 +588,10 @@ export const routeTree = rootRoute
       "children": [
         "/(public)/_public/"
       ]
+    },
+    "/(app)/_app/csc": {
+      "filePath": "(app)/_app.csc.tsx",
+      "parent": "/(app)/_app"
     },
     "/(app)/_app/dashboard": {
       "filePath": "(app)/_app.dashboard.tsx",
