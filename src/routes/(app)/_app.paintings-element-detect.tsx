@@ -57,18 +57,18 @@ function ImageWithBoundingBoxes({ imageUrl, detections, filename, showBoxes }: I
         >
           {detections.map((detection, index) => {
             const [x1, y1, x2, y2] = detection.box;
-            
+
             // Scale coordinates from original image to display size
             const scaleX = displayDimensions.width / imageDimensions.width;
             const scaleY = displayDimensions.height / imageDimensions.height;
-            
+
             const scaledX = x1 * scaleX;
             const scaledY = y1 * scaleY;
             const scaledWidth = (x2 - x1) * scaleX;
             const scaledHeight = (y2 - y1) * scaleY;
-            
+
             const color = getClassColor(detection.class_name);
-            
+
             return (
               <g key={index}>
                 {/* Bounding box rectangle */}
@@ -166,13 +166,13 @@ function RouteComponent() {
 
       try {
         setLoading(true);
-        
+
         // Load media items
         const mediaItems = await Promise.all(
           selectedImageIds.map((id: string) => pb.collection("media").getOne(id))
         );
         setMedia(mediaItems);
-        
+
       } catch (error) {
         console.error('Error loading data:', error);
         setMedia([]);
@@ -186,45 +186,42 @@ function RouteComponent() {
 
   const detectElements = async () => {
     if (!media[currentImageIndex]) return;
-    
+
     setIsDetecting(true);
     setDetectionResult(null);
-    
+
     try {
       const currentImage = media[currentImageIndex];
-      
+
       // Get the image file from PocketBase
       const imageUrl = pb.files.getURL(currentImage, currentImage.image);
-      
+
       // Fetch the image as a blob
       const imageResponse = await fetch(imageUrl);
       const imageBlob = await imageResponse.blob();
-      
+
       // Create FormData for the API request
       const formData = new FormData();
       formData.append('image', imageBlob, currentImage.filename);
-      
-      // Call the detection API with CORS proxy
-      const apiUrl = import.meta.env.DEV 
-        ? '/api/detect'  // Use Vite proxy in development
-        : 'https://corsproxy.io/?http://152.69.221.68:3001/detect';  // Use CORS proxy in production
-      
+
+      const apiUrl = 'https://painting.rmbr.app/detect';
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         body: formData,
       });
-      
+
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status} ${response.statusText}`);
       }
-      
+
       const result = await response.json();
       setDetectionResult(result);
       setShowBoundingBoxes(true);
-      
+
     } catch (error) {
       console.error('Error detecting elements:', error);
-      
+
       // Show user-friendly error message based on error type
       if (error instanceof TypeError && error.message.includes('fetch')) {
         alert('Network error: Unable to connect to the detection service. Please check your internet connection and try again.');
@@ -240,25 +237,25 @@ function RouteComponent() {
 
   const acceptDetection = async () => {
     if (!detectionResult || !media[currentImageIndex]) return;
-    
+
     setIsSaving(true);
     try {
       const currentImage = media[currentImageIndex];
-      
+
       // Try to find existing element detection record
       let detectionRecord;
       try {
         const existingDetections = await pb.collection("element_detections").getList(1, 1, {
           filter: `media = "${currentImage.id}"`
         });
-        
+
         if (existingDetections.items.length > 0) {
           detectionRecord = existingDetections.items[0];
         }
       } catch (error) {
         console.log('No existing detection record found, will create new one');
       }
-      
+
       const detectionData = {
         media: currentImage.id,
         detections: JSON.stringify(detectionResult.detections),
@@ -266,7 +263,7 @@ function RouteComponent() {
         detection_count: detectionResult.detection_count,
         status: 'accepted'
       };
-      
+
       if (detectionRecord) {
         // Update existing record
         await pb.collection("element_detections").update(detectionRecord.id, detectionData);
@@ -274,14 +271,14 @@ function RouteComponent() {
         // Create new record
         await pb.collection("element_detections").create(detectionData);
       }
-      
+
       // Move to next image if available
       if (currentImageIndex < media.length - 1) {
         setCurrentImageIndex(currentImageIndex + 1);
         setDetectionResult(null);
         setShowBoundingBoxes(true);
       }
-      
+
     } catch (error) {
       console.error('Error saving detection:', error);
     } finally {
@@ -383,7 +380,7 @@ function RouteComponent() {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-          
+
           <div className="flex gap-2">
             {!detectionResult && (
               <Button
@@ -404,7 +401,7 @@ function RouteComponent() {
                 )}
               </Button>
             )}
-            
+
             {detectionResult && (
               <Button
                 variant="outline"
@@ -430,7 +427,7 @@ function RouteComponent() {
                 showBoxes={showBoundingBoxes && !!detectionResult}
               />
             </div>
-            
+
             {/* Image Info */}
             <div className="text-center space-y-2">
               <h3 className="font-medium text-lg">{currentImage.filename}</h3>
@@ -444,7 +441,7 @@ function RouteComponent() {
                   {detectionResult.detection_count} element{detectionResult.detection_count !== 1 ? 's' : ''} detected
                 </p>
               )}
-              
+
               {/* Color Legend */}
               {detectionResult && showBoundingBoxes && (
                 <div className="bg-white/90 rounded-lg p-3 inline-block">
@@ -453,7 +450,7 @@ function RouteComponent() {
                     {Object.entries(detectionResult.class_distribution).map(([className, count]) => (
                       count > 0 && (
                         <div key={className} className="flex items-center gap-1">
-                          <div 
+                          <div
                             className="w-3 h-3 rounded border"
                             style={{
                               backgroundColor: (() => {
@@ -481,21 +478,21 @@ function RouteComponent() {
           {/* Detection Results */}
           <div className="flex flex-col gap-4">
             <h3 className="text-lg font-semibold">Detection Results</h3>
-            
+
             {!detectionResult && !isDetecting && (
               <div className="text-center py-8 text-muted-foreground">
                 <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Click "Detect Elements" to analyze this landscape painting for natural elements.</p>
               </div>
             )}
-            
+
             {isDetecting && (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
                 <p className="text-muted-foreground">Analyzing image for landscape elements...</p>
               </div>
             )}
-            
+
             {detectionResult && (
               <div className="space-y-4">
                 <div className="bg-muted rounded-lg p-4">
@@ -515,7 +512,7 @@ function RouteComponent() {
                     )}
                   </div>
                 </div>
-                
+
                 {/* Class Distribution */}
                 <div className="bg-muted rounded-lg p-4">
                   <h4 className="font-medium mb-2">Element Summary</h4>
@@ -530,7 +527,7 @@ function RouteComponent() {
                     ))}
                   </div>
                 </div>
-                
+
                 {/* Painting Highlights Input */}
                 <div className="bg-muted rounded-lg p-4">
                   <h4 className="font-medium mb-2">Painting Highlights</h4>

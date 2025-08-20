@@ -40,8 +40,7 @@ import {
   SelectValue,
 } from "~/components/ui/select"
 
-// const FACIAL_RECOGNITION_API_URL = "/api/facial_recognition";
-const FACIAL_RECOGNITION_API_URL = 'http://152.69.221.68:3000';
+const FACIAL_RECOGNITION_API_URL = 'https://facialrecognition.rmbr.app';
 
 interface DetectedFace {
   x: number;
